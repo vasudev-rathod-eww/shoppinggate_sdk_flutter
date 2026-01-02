@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShoppingGate Flutter SDK: Android Integration Guide</title>
-    <!-- Google Fonts -->
+    <title>ShoppingGate SDK | Developer Portal</title>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
 
-    <!-- Highlight.js for Code Highlighting -->
+    <!-- Icons & Highlighting -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
@@ -21,151 +23,227 @@
 
     <style>
         :root {
-            --primary: #2563eb;
-            --text-main: #1f2937;
-            --text-light: #6b7280;
-            --bg-body: #f9fafb;
+            /* Dark Theme (Default) */
+            --bg-body: #020617;
+            --bg-side: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.3);
+            --code-bg: #010409;
+            --callout-bg: rgba(245, 158, 11, 0.1);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f1f5f9;
+            --bg-side: #ffffff;
             --bg-card: #ffffff;
-            --border: #e5e7eb;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --primary: #2563eb;
+            --primary-glow: rgba(37, 99, 235, 0.1);
             --code-bg: #0d1117;
+            --callout-bg: #fffbeb;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.3s, border-color 0.3s;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            color: var(--text-main);
-            background-color: var(--bg-body);
+            font-family: 'Plus Jakarta Sans', sans-serif;
             margin: 0;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             display: flex;
+            line-height: 1.6;
         }
 
-        /* Sidebar Navigation */
-        nav {
-            width: 280px;
+        /* --- Sidebar --- */
+        aside {
+            width: 300px;
             height: 100vh;
-            background: var(--bg-card);
+            background: var(--bg-side);
             border-right: 1px solid var(--border);
             position: fixed;
             padding: 2rem 1.5rem;
             overflow-y: auto;
         }
 
-        nav h2 {
-            font-size: 0.875px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-light);
-            margin-bottom: 1rem;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 3rem;
         }
 
-        nav ul {
+        .nav-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin: 1.5rem 0 0.5rem 0;
+            font-weight: 700;
+        }
+
+        aside ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
 
-        nav li {
-            margin-bottom: 0.5rem;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: var(--text-main);
-            font-size: 0.95rem;
+        aside a {
             display: block;
-            padding: 0.5rem;
-            border-radius: 6px;
-            transition: all 0.2s;
+            padding: 0.6rem 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            margin-bottom: 2px;
         }
 
-        nav a:hover {
-            background: #eff6ff;
+        aside a:hover {
+            background: var(--primary-glow);
             color: var(--primary);
         }
 
-        /* Main Content */
+        aside a.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        /* --- Main Content --- */
         main {
-            margin-left: 280px;
-            padding: 3rem 4rem;
-            max-width: 900px;
+            margin-left: 300px;
+            padding: 4rem 10%;
+            width: 100%;
+            max-width: 1200px;
         }
 
-        header {
-            margin-bottom: 3rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 2rem;
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 2rem;
         }
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            color: #111827;
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 99px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin: 0;
+            letter-spacing: -0.04em;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-top: 1rem;
         }
 
         h2 {
-            font-size: 1.75rem;
-            margin-top: 3rem;
-            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            margin-top: 4rem;
             border-bottom: 1px solid var(--border);
             padding-bottom: 0.5rem;
         }
 
         h3 {
-            font-size: 1.25rem;
-            margin-top: 2rem;
+            font-size: 1.3rem;
+            margin-top: 2.5rem;
             color: var(--primary);
         }
 
-        .badge {
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .prereq-list {
-            background: #fff;
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Code Block Styling */
-        pre {
+        /* --- Code Blocks --- */
+        .code-wrap {
             margin: 1.5rem 0;
-            border-radius: 8px;
+            border-radius: 12px;
+            background: var(--code-bg);
+            border: 1px solid var(--border);
             overflow: hidden;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-header span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid transparent;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+        }
+
+        pre {
+            margin: 0 !important;
         }
 
         code {
-            font-family: 'Fira Code', monospace;
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.9rem !important;
         }
 
         .file-tree {
-            background: #f3f4f6;
-            padding: 1rem;
-            border-left: 4px solid var(--primary);
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            margin: 1rem 0;
-        }
-
-        .disclaimer {
-            margin-top: 5rem;
+            background: var(--bg-card);
             padding: 1.5rem;
-            background: #fffbeb;
-            border-left: 4px solid #f59e0b;
-            font-style: italic;
-            color: #92400e;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
         }
 
-        /* Responsive */
+        .callout {
+            background: var(--callout-bg);
+            border-left: 4px solid #f59e0b;
+            padding: 1.25rem;
+            border-radius: 0 12px 12px 0;
+            margin: 2rem 0;
+            color: var(--text-main);
+        }
+
         @media (max-width: 1024px) {
-            nav {
+            aside {
                 display: none;
             }
 
@@ -179,67 +257,84 @@
 
 <body>
 
-    <nav>
-        <h2>Integration Guide</h2>
+    <aside>
+        <div class="brand">
+            <i data-lucide="shopping-bag"></i>
+            ShoppingGate
+        </div>
+
+        <div class="nav-label">Getting Started</div>
         <ul>
             <li><a href="#prerequisites">1. Prerequisites</a></li>
             <li><a href="#repo-setup">2. Repository Setup</a></li>
-            <li><a href="#host-config">3. Host Project Configuration</a></li>
-            <li><a href="#implementation">4. Compose Implementation</a></li>
-            <li><a href="#troubleshooting">5. Troubleshooting</a></li>
         </ul>
-    </nav>
+
+        <div class="nav-label">Configuration</div>
+        <ul>
+            <li><a href="#host-config">3. Host Configuration</a></li>
+            <li><a href="#manifest">4. Android Manifest</a></li>
+        </ul>
+
+        <div class="nav-label">Usage</div>
+        <ul>
+            <li><a href="#implementation">5. In Activity Implementation</a></li>
+            <li><a href="#troubleshooting">6. Troubleshooting</a></li>
+        </ul>
+    </aside>
 
     <main>
+        <div class="top-bar">
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <i data-lucide="moon" id="theme-icon"></i>
+                <span id="theme-text">Dark Mode</span>
+            </button>
+        </div>
+
         <header>
             <h1>ShoppingGate Flutter SDK</h1>
-            <p style="font-size: 1.2rem; color: var(--text-light);">Android Native Integration Guide (Jetpack Compose &
-                AAR)</p>
+            <p style="font-size: 1.2rem; color: var(--text-light);">Android Native Integration Guide (AAR)</p>
+            <p>Complete technical guide for embedding the ShoppingGate SDK into native Android apps using Jetpack
+                Compose.</p>
         </header>
 
         <section id="prerequisites">
             <h2>1. Prerequisites</h2>
-            <div class="prereq-list">
-                <ul>
-                    <li><strong>Flutter SDK:</strong> Latest stable version.</li>
-                    <li><strong>Android Studio:</strong> Ladybug (2024.2.1) or newer.</li>
-                    <li><strong>JDK:</strong> Version 17 <span class="badge">Required</span></li>
-                    <li><strong>Minimum SDK:</strong> API 29 (Android 10) or higher.</li>
-                </ul>
-            </div>
+            <p>Verification of the following environment settings is required for a successful build:</p>
+            <ul>
+                <li><strong>JDK:</strong> Version 17 <span style="color: var(--primary); font-weight: bold;">(Strict
+                        Requirement)</span></li>
+                <li><strong>Android Studio:</strong> Ladybug (2024.2.1) or higher</li>
+                <li><strong>Min SDK:</strong> API 29 (Android 10)</li>
+            </ul>
         </section>
 
         <section id="repo-setup">
-            <h2>2. SDK Repository Setup</h2>
-            <p>The SDK is distributed as a local Maven repository. Follow these steps to prepare your project structure:
-            </p>
-            <ol>
-                <li>Locate the <code>ShoppingGateSDK</code> folder provided by the team.</li>
-                <li>Place this folder directly into the <strong>root directory</strong> of your native Android project.
-                </li>
-            </ol>
+            <h2>2. Repository Setup</h2>
+            <p>The SDK is delivered as a local Maven repository. Place the <code>ShoppingGateSDK</code> folder in your
+                project's root directory.</p>
             <div class="file-tree">
-                Android-Project-Root/ <br>
+                Root-Directory/ <br>
                 ├── app/ <br>
-                ├── gradle/ <br>
-                ├── <strong>ShoppingGateSDK/</strong> &lt;-- Place SDK repository here <br>
+                ├── <span style="color: var(--primary)">ShoppingGateSDK/</span> &lt;-- Local SDK folder <br>
                 ├── build.gradle.kts <br>
                 └── settings.gradle.kts
             </div>
         </section>
 
         <section id="host-config">
-            <h2>3. Host Project Configuration</h2>
+            <h2>3. Host Configuration</h2>
 
-            <h3>A. Repository Management</h3>
-            <p>Configure your <code>settings.gradle.kts</code> to recognize the local SDK and Flutter binaries.</p>
-            <pre><code class="language-gradle">dependencyResolutionManagement {
+            <h3>A. Settings Gradle</h3>
+            <div class="code-wrap">
+                <div class="code-header"><span>settings.gradle.kts</span><button class="copy-btn"
+                        onclick="copyCode(this)">Copy</button></div>
+                <pre><code class="language-gradle">dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
         
-        // Local ShoppingGate SDK repository
+        // Local ShoppingGate SDK
         maven {
             url = uri("${rootProject.projectDir}/ShoppingGateSDK")
         }
@@ -250,10 +345,14 @@
         }
     }
 }</code></pre>
+            </div>
 
-            <h3>B. App-Level Gradle Configuration</h3>
-            <p>In <code>app/build.gradle.kts</code>, set NDK filters and Java 17 compatibility.</p>
-            <pre><code class="language-gradle">android {
+            <h3>B. App-Level Gradle (build.gradle.kts)</h3>
+            <p>Ensure <strong>multiDexEnabled</strong> and <strong>abiFilters</strong> are correctly set.</p>
+            <div class="code-wrap">
+                <div class="code-header"><span>app/build.gradle.kts</span><button class="copy-btn"
+                        onclick="copyCode(this)">Copy</button></div>
+                <pre><code class="language-gradle">android {
     defaultConfig {
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
@@ -273,31 +372,38 @@
 }
 
 dependencies {
-    // ShoppingGate Flutter SDK 
     implementation("com.shoppinggate.sdk.customer:flutter_release:1.0")
-    
-    // Support for Java 8+ API desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }</code></pre>
+            </div>
 
-            <h3>C. Kotlin Compiler Configuration</h3>
-            <pre><code class="language-gradle">import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+            <h3>C. Kotlin Compiler Task</h3>
+            <div class="code-wrap">
+                <div class="code-header"><span>build.gradle.kts (Root)</span><button class="copy-btn"
+                        onclick="copyCode(this)">Copy</button></div>
+                <pre><code class="language-gradle">import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 tasks.withType&lt;KotlinJvmCompile&gt;().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }</code></pre>
+            </div>
+        </section>
 
-            <h3>D. Android Manifest</h3>
-            <p>Register the <code>FlutterActivity</code> and declare needed permissions.</p>
-            <pre><code class="language-xml">&lt;!-- app/src/main/AndroidManifest.xml --&gt;
-&lt;manifest xmlns:android="http://schemas.android.com/apk/res/xml"&gt;
+        <section id="manifest">
+            <h2>4. Android Manifest Registry</h2>
+            <p>Note the usage of <strong>Theme.ShoppingGateFlutterSDK</strong> and storage permissions.</p>
+            <div class="code-wrap">
+                <div class="code-header"><span>AndroidManifest.xml</span><button class="copy-btn"
+                        onclick="copyCode(this)">Copy</button></div>
+                <pre><code class="language-xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"&gt;
 
     &lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/&gt;
-    &lt;uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/&gt;
     &lt;uses-permission android:name="android.permission.INTERNET"/&gt;
-     &lt;!-- For Android 12 and below --&gt;
+    
+    &lt;!-- Storage for older Android versions --&gt;
     &lt;uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" /&gt;
     &lt;uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -312,53 +418,83 @@ tasks.withType&lt;KotlinJvmCompile&gt;().configureEach {
             android:windowSoftInputMode="adjustResize" /&gt;
     &lt;/application&gt;
 &lt;/manifest&gt;</code></pre>
+            </div>
         </section>
 
         <section id="implementation">
-            <h2>4. Implementation in Jetpack Compose</h2>
-            <p>Launch the SDK environment using the <code>FlutterActivity.IntentBuilder</code>.</p>
-            <pre><code class="language-kotlin">import io.flutter.embedding.android.FlutterActivity
+            <h2>5. Launching the SDK</h2>
+            <div class="code-wrap">
+                <div class="code-header"><span>MainActivity.kt</span><button class="copy-btn"
+                        onclick="copyCode(this)">Copy</button></div>
+                <pre><code class="language-kotlin">import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            YourAppTheme {
-                Button(onClick = {
-                    startActivity(
-                        FlutterActivity.createDefaultIntent(this)
-                    )
-                }) {
-                    Text("Open ShoppingGate SDK")
-                }
+            Button(onClick = {
+                startActivity(FlutterActivity.createDefaultIntent(this))
+            }) {
+                Text("Launch ShoppingGate")
             }
         }
     }
 }</code></pre>
+            </div>
         </section>
 
         <section id="troubleshooting">
-            <h2>5. Troubleshooting & Best Practices</h2>
+            <h2>6. Troubleshooting</h2>
             <ul>
-                <li><strong>AAR Immutability:</strong> Hot Reload is not available for AAR integrations. Rebuild the
-                    project to see changes.</li>
-                <li><strong>ABI Support:</strong> Ensure <code>abiFilters</code> strictly include
-                    <code>armeabi-v7a</code>, <code>arm64-v8a</code>, and <code>x86_64</code>.
+                <li><strong>Hot Reload:</strong> Not supported for AAR integration. Clean and Rebuild to see changes.
                 </li>
-                <li><strong>Clean Build:</strong> If classes are not found, run <code>./gradlew clean</code> from the
-                    terminal.</li>
-                <li><strong>Runtime Permissions:</strong> You must manually request <code>Need Permissions</code>
-                    before launching the SDK for full functionality.</li>
+                <li><strong>ABI Issues:</strong> Ensure your emulator/device matches the <code>abiFilters</code>.</li>
+                <li><strong>Clean Build:</strong> Use <code>./gradlew clean</code> if classes are not found.</li>
             </ul>
         </section>
 
-        <div class="disclaimer">
-            <strong>Disclaimer:</strong> This documentation is a preliminary draft. Implementation details may change as
-            the SDK evolves. Always refer to the latest version of the integration package.
+        <div class="callout">
+            <strong>Disclaimer:</strong> This is a preliminary draft. Details regarding API endpoints and theme
+            attributes may change in future SDK iterations.
         </div>
     </main>
 
-    <script>hljs.highlightAll();</script>
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                text.innerText = 'Light Mode';
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                text.innerText = 'Dark Mode';
+                icon.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+        }
+
+        // Copy Code Logic
+        function copyCode(btn) {
+            const code = btn.closest('.code-wrap').querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = 'Copied!';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = 'rgba(255, 255, 255, 0.1)';
+                }, 2000);
+            });
+        }
+    </script>
 </body>
 
 </html>
