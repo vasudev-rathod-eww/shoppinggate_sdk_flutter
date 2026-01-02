@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShoppingGate Flutter SDK: Android Integration Guide</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Highlight.js for Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/gradle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --bg-body: #f9fafb;
+            --bg-card: #ffffff;
+            --border: #e5e7eb;
+            --code-bg: #0d1117;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            margin: 0;
+            display: flex;
+        }
+
+        /* Sidebar Navigation */
+        nav {
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+        }
+
+        nav h2 {
+            font-size: 0.875px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: 280px;
+            padding: 3rem 4rem;
+            max-width: 900px;
+        }
+
+        header {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            margin-top: 2rem;
+            color: var(--primary);
+        }
+
+        .badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .prereq-list {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Code Block Styling */
+        pre {
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .file-tree {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-left: 4px solid var(--primary);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+        }
+
+        .disclaimer {
+            margin-top: 5rem;
+            padding: 1.5rem;
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            font-style: italic;
+            color: #92400e;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            nav {
+                display: none;
+            }
+
+            main {
+                margin-left: 0;
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <h2>Integration Guide</h2>
+        <ul>
+            <li><a href="#prerequisites">1. Prerequisites</a></li>
+            <li><a href="#repo-setup">2. Repository Setup</a></li>
+            <li><a href="#host-config">3. Host Project Configuration</a></li>
+            <li><a href="#implementation">4. Compose Implementation</a></li>
+            <li><a href="#troubleshooting">5. Troubleshooting</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <header>
+            <h1>ShoppingGate Flutter SDK</h1>
+            <p style="font-size: 1.2rem; color: var(--text-light);">Android Native Integration Guide (Jetpack Compose &
+                AAR)</p>
+        </header>
+
+        <section id="prerequisites">
+            <h2>1. Prerequisites</h2>
+            <div class="prereq-list">
+                <ul>
+                    <li><strong>Flutter SDK:</strong> Latest stable version.</li>
+                    <li><strong>Android Studio:</strong> Ladybug (2024.2.1) or newer.</li>
+                    <li><strong>JDK:</strong> Version 17 <span class="badge">Required</span></li>
+                    <li><strong>Minimum SDK:</strong> API 29 (Android 10) or higher.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="repo-setup">
+            <h2>2. SDK Repository Setup</h2>
+            <p>The SDK is distributed as a local Maven repository. Follow these steps to prepare your project structure:
+            </p>
+            <ol>
+                <li>Locate the <code>ShoppingGateSDK</code> folder provided by the team.</li>
+                <li>Place this folder directly into the <strong>root directory</strong> of your native Android project.
+                </li>
+            </ol>
+            <div class="file-tree">
+                Android-Project-Root/ <br>
+                ├── app/ <br>
+                ├── gradle/ <br>
+                ├── <strong>ShoppingGateSDK/</strong> &lt;-- Place SDK repository here <br>
+                ├── build.gradle.kts <br>
+                └── settings.gradle.kts
+            </div>
+        </section>
+
+        <section id="host-config">
+            <h2>3. Host Project Configuration</h2>
+
+            <h3>A. Repository Management</h3>
+            <p>Configure your <code>settings.gradle.kts</code> to recognize the local SDK and Flutter binaries.</p>
+            <pre><code class="language-gradle">dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        
+        // Local ShoppingGate SDK repository
+        maven {
+            url = uri("${rootProject.projectDir}/ShoppingGateSDK")
+        }
+        
+        // Flutter engine binaries
+        maven {
+            url = uri("https://storage.googleapis.com/download.flutter.io")
+        }
+    }
+}</code></pre>
+
+            <h3>B. App-Level Gradle Configuration</h3>
+            <p>In <code>app/build.gradle.kts</code>, set NDK filters and Java 17 compatibility.</p>
+            <pre><code class="language-gradle">android {
+    defaultConfig {
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
+        }
+        multiDexEnabled = true
+    }
+    
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true 
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+dependencies {
+    // ShoppingGate Flutter SDK 
+    implementation("com.shoppinggate.sdk.customer:flutter_release:1.0")
+    
+    // Support for Java 8+ API desugaring
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+}</code></pre>
+
+            <h3>C. Kotlin Compiler Configuration</h3>
+            <pre><code class="language-gradle">import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
+tasks.withType&lt;KotlinJvmCompile&gt;().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}</code></pre>
+
+            <h3>D. Android Manifest</h3>
+            <p>Register the <code>FlutterActivity</code> and declare location permissions.</p>
+            <pre><code class="language-xml">&lt;!-- app/src/main/AndroidManifest.xml --&gt;
+&lt;manifest xmlns:android="http://schemas.android.com/apk/res/xml"&gt;
+
+    &lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/&gt;
+    &lt;uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/&gt;
+
+    &lt;application&gt;
+        &lt;activity
+            android:name="io.flutter.embedding.android.FlutterActivity"
+            android:theme="@style/Theme.ShoppingGateFlutterSDK"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize" /&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;</code></pre>
+        </section>
+
+        <section id="implementation">
+            <h2>4. Implementation in Jetpack Compose</h2>
+            <p>Launch the SDK environment using the <code>FlutterActivity.IntentBuilder</code>.</p>
+            <pre><code class="language-kotlin">import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            YourAppTheme {
+                Button(onClick = {
+                    startActivity(
+                        FlutterActivity.createDefaultIntent(this)
+                    )
+                }) {
+                    Text("Open ShoppingGate SDK")
+                }
+            }
+        }
+    }
+}</code></pre>
+        </section>
+
+        <section id="troubleshooting">
+            <h2>5. Troubleshooting & Best Practices</h2>
+            <ul>
+                <li><strong>AAR Immutability:</strong> Hot Reload is not available for AAR integrations. Rebuild the
+                    project to see changes.</li>
+                <li><strong>ABI Support:</strong> Ensure <code>abiFilters</code> strictly include
+                    <code>armeabi-v7a</code>, <code>arm64-v8a</code>, and <code>x86_64</code>.</li>
+                <li><strong>Clean Build:</strong> If classes are not found, run <code>./gradlew clean</code> from the
+                    terminal.</li>
+                <li><strong>Runtime Permissions:</strong> You must manually request <code>ACCESS_FINE_LOCATION</code>
+                    before launching the SDK for full functionality.</li>
+            </ul>
+        </section>
+
+        <div class="disclaimer">
+            <strong>Disclaimer:</strong> This documentation is a preliminary draft. Implementation details may change as
+            the SDK evolves. Always refer to the latest version of the integration package.
+        </div>
+    </main>
+
+    <script>hljs.highlightAll();</script>
+</body>
+
+</html>
