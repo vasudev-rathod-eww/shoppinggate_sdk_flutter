@@ -257,6 +257,53 @@
             color: var(--text-main);
         }
 
+        /* Download Card Styles */
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .download-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .download-card:hover {
+            border-color: var(--primary);
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            transition: opacity 0.2s;
+        }
+
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+
+        .download-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
         @media (max-width: 1024px) {
             aside {
                 display: none;
@@ -277,6 +324,11 @@
             <i data-lucide="shopping-bag"></i>
             ShoppingGate
         </div>
+
+        <div class="nav-label">Resources</div>
+        <ul>
+            <li><a href="#downloads">SDK Downloads</a></li>
+        </ul>
 
         <div class="nav-label">Getting Started</div>
         <ul>
@@ -313,6 +365,46 @@
                 Compose.</p>
         </header>
 
+        <!-- DOWNLOADS SECTION -->
+        <section id="downloads">
+            <h2>SDK Downloads & Resources</h2>
+            <p>Access the core SDK files and reference implementation projects below.</p>
+
+            <div class="download-grid">
+                <!-- SDK Zip -->
+                <div class="download-card">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                            <i data-lucide="archive" style="color: var(--primary)"></i>
+                            <strong style="font-size: 1.1rem;">ShoppingGate Core Flutter SDK</strong>
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">Contains the compiled AAR artifacts,
+                            Flutter engine binaries, and necessary assets for integration.</p>
+                    </div>
+                    <a href="https://drive.google.com/file/d/1x0f-JYowjNwWvjtrmyf90ZSP-NDHXm1w/view?usp=sharing"
+                        target="_blank" class="download-btn">
+                        <i data-lucide="download" size="18"></i> Download SDK (.zip)
+                    </a>
+                </div>
+
+                <!-- Implementation Zip -->
+                <div class="download-card">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                            <i data-lucide="layout-template" style="color: var(--primary)"></i>
+                            <strong style="font-size: 1.1rem;">Native Android Reference Implementation</strong>
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">A complete Android Studio project
+                            demonstrating the boilerplate code for a native host application.</p>
+                    </div>
+                    <a href="https://drive.google.com/file/d/1-O_oTwkSL0zWAQ8aTvhkNm7VmYuZEsu8/view?usp=sharing"
+                        target="_blank" class="download-btn secondary">
+                        <i data-lucide="external-link" size="18"></i> View Sample Code
+                    </a>
+                </div>
+            </div>
+        </section>
+
         <section id="prerequisites">
             <h2>1. Prerequisites</h2>
             <p>Verification of the following environment settings is required for a successful build:</p>
@@ -328,10 +420,9 @@
             <p>To initialize the SDK, you must have the following configuration parameters ready:</p>
 
             <div class="file-tree">
-                <strong style="color: var(--primary)">Google Maps API Key:</strong> Required for the store locator and
-                delivery tracking features.<br>
-                <strong style="color: var(--primary)">User Mobile Number:</strong> Required for session authentication
-                and order history.
+                <strong style="color: var(--primary)">Google Maps API Key:</strong> Required to get customers location
+                using google map.<br>
+                <strong style="color: var(--primary)">User Mobile Number:</strong> Required for session authentication.
             </div>
 
             <div class="callout">
