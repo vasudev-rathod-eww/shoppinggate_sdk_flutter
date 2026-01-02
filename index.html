@@ -290,12 +290,18 @@ tasks.withType&lt;KotlinJvmCompile&gt;().configureEach {
 }</code></pre>
 
             <h3>D. Android Manifest</h3>
-            <p>Register the <code>FlutterActivity</code> and declare location permissions.</p>
+            <p>Register the <code>FlutterActivity</code> and declare needed permissions.</p>
             <pre><code class="language-xml">&lt;!-- app/src/main/AndroidManifest.xml --&gt;
 &lt;manifest xmlns:android="http://schemas.android.com/apk/res/xml"&gt;
 
     &lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/&gt;
     &lt;uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/&gt;
+    &lt;uses-permission android:name="android.permission.INTERNET"/&gt;
+     &lt;!-- For Android 12 and below --&gt;
+    &lt;uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" /&gt;
+    &lt;uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" /&gt;
 
     &lt;application&gt;
         &lt;activity
@@ -337,7 +343,8 @@ class MainActivity : ComponentActivity() {
                 <li><strong>AAR Immutability:</strong> Hot Reload is not available for AAR integrations. Rebuild the
                     project to see changes.</li>
                 <li><strong>ABI Support:</strong> Ensure <code>abiFilters</code> strictly include
-                    <code>armeabi-v7a</code>, <code>arm64-v8a</code>, and <code>x86_64</code>.</li>
+                    <code>armeabi-v7a</code>, <code>arm64-v8a</code>, and <code>x86_64</code>.
+                </li>
                 <li><strong>Clean Build:</strong> If classes are not found, run <code>./gradlew clean</code> from the
                     terminal.</li>
                 <li><strong>Runtime Permissions:</strong> You must manually request <code>ACCESS_FINE_LOCATION</code>
