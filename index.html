@@ -233,6 +233,33 @@
             font-size: 0.9rem;
         }
 
+        .badge {
+            /* Uses the primary blue with transparency from your theme variables */
+            background: var(--primary-glow);
+            color: var(--primary);
+
+            /* Layout & Typography */
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+
+            /* Adds a subtle border to make it pop in dark mode */
+            border: 1px solid rgba(var(--primary), 0.2);
+            vertical-align: middle;
+        }
+
+        /* Optional: If you want a more "Strict" look for requirements */
+        .badge-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
         .callout {
             background: var(--callout-bg);
             border-left: 4px solid #f59e0b;
@@ -301,8 +328,7 @@
             <h2>1. Prerequisites</h2>
             <p>Verification of the following environment settings is required for a successful build:</p>
             <ul>
-                <li><strong>JDK:</strong> Version 17 <span style="color: var(--primary); font-weight: bold;">(Strict
-                        Requirement)</span></li>
+                <li><strong>JDK:</strong> Version 17 <span class="badge">Strict Requirement</span></li>
                 <li><strong>Android Studio:</strong> Ladybug (2024.2.1) or higher</li>
                 <li><strong>Min SDK:</strong> API 29 (Android 10)</li>
             </ul>
