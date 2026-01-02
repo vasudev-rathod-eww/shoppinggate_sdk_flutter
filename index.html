@@ -234,11 +234,8 @@
         }
 
         .badge {
-            /* Uses the primary blue with transparency from your theme variables */
             background: var(--primary-glow);
             color: var(--primary);
-
-            /* Layout & Typography */
             padding: 2px 8px;
             border-radius: 6px;
             font-size: 0.75rem;
@@ -247,17 +244,8 @@
             letter-spacing: 0.05em;
             display: inline-flex;
             align-items: center;
-
-            /* Adds a subtle border to make it pop in dark mode */
-            border: 1px solid rgba(var(--primary), 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.2);
             vertical-align: middle;
-        }
-
-        /* Optional: If you want a more "Strict" look for requirements */
-        .badge-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
         .callout {
@@ -293,19 +281,20 @@
         <div class="nav-label">Getting Started</div>
         <ul>
             <li><a href="#prerequisites">1. Prerequisites</a></li>
-            <li><a href="#repo-setup">2. Repository Setup</a></li>
+            <li><a href="#credentials">2. API & Credentials</a></li>
+            <li><a href="#repo-setup">3. Repository Setup</a></li>
         </ul>
 
         <div class="nav-label">Configuration</div>
         <ul>
-            <li><a href="#host-config">3. Host Configuration</a></li>
-            <li><a href="#manifest">4. Android Manifest</a></li>
+            <li><a href="#host-config">4. Host Configuration</a></li>
+            <li><a href="#manifest">5. Android Manifest</a></li>
         </ul>
 
         <div class="nav-label">Usage</div>
         <ul>
-            <li><a href="#implementation">5. In Activity Implementation</a></li>
-            <li><a href="#troubleshooting">6. Troubleshooting</a></li>
+            <li><a href="#implementation">6. In Activity Implementation</a></li>
+            <li><a href="#troubleshooting">7. Troubleshooting</a></li>
         </ul>
     </aside>
 
@@ -334,8 +323,25 @@
             </ul>
         </section>
 
+        <section id="credentials">
+            <h2>2. API & Required Parameters</h2>
+            <p>To initialize the SDK, you must have the following configuration parameters ready:</p>
+
+            <div class="file-tree">
+                <strong style="color: var(--primary)">Google Maps API Key:</strong> Required for the store locator and
+                delivery tracking features.<br>
+                <strong style="color: var(--primary)">User Mobile Number:</strong> Required for session authentication
+                and order history.
+            </div>
+
+            <div class="callout">
+                <strong>Important:</strong> Ensure that the Google Maps API Key has "Maps SDK for Android" enabled in
+                the Google Cloud Console and is restricted to your app's package name.
+            </div>
+        </section>
+
         <section id="repo-setup">
-            <h2>2. Repository Setup</h2>
+            <h2>3. Repository Setup</h2>
             <p>The SDK is delivered as a local Maven repository. Place the <code>ShoppingGateSDK</code> folder in your
                 project's root directory.</p>
             <div class="file-tree">
@@ -348,7 +354,7 @@
         </section>
 
         <section id="host-config">
-            <h2>3. Host Configuration</h2>
+            <h2>4. Host Configuration</h2>
 
             <h3>A. Settings Gradle</h3>
             <div class="code-wrap">
@@ -374,7 +380,6 @@
             </div>
 
             <h3>B. App-Level Gradle (build.gradle.kts)</h3>
-            <p>Ensure <strong>multiDexEnabled</strong> and <strong>abiFilters</strong> are correctly set.</p>
             <div class="code-wrap">
                 <div class="code-header"><span>app/build.gradle.kts</span><button class="copy-btn"
                         onclick="copyCode(this)">Copy</button></div>
@@ -402,40 +407,26 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }</code></pre>
             </div>
-
-            <h3>C. Kotlin Compiler Task</h3>
-            <div class="code-wrap">
-                <div class="code-header"><span>build.gradle.kts (Root)</span><button class="copy-btn"
-                        onclick="copyCode(this)">Copy</button></div>
-                <pre><code class="language-gradle">import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-
-tasks.withType&lt;KotlinJvmCompile&gt;().configureEach {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-    }
-}</code></pre>
-            </div>
         </section>
 
         <section id="manifest">
-            <h2>4. Android Manifest Registry</h2>
-            <p>Note the usage of <strong>Theme.ShoppingGateFlutterSDK</strong> and storage permissions.</p>
+            <h2>5. Android Manifest Registry</h2>
+            <p>Register the Google Maps API Key and the SDK Activity. Replace <code>YOUR_MAPS_KEY</code> with your
+                actual key.</p>
             <div class="code-wrap">
                 <div class="code-header"><span>AndroidManifest.xml</span><button class="copy-btn"
                         onclick="copyCode(this)">Copy</button></div>
-                <pre><code class="language-xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"&gt;
+                <pre><code class="language-xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"&gt;
 
     &lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/&gt;
     &lt;uses-permission android:name="android.permission.INTERNET"/&gt;
-    
-    &lt;!-- Storage for older Android versions --&gt;
-    &lt;uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" /&gt;
-    &lt;uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" /&gt;
 
     &lt;application&gt;
+        &lt;!-- Google Maps API Key --&gt;
+        &lt;meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="YOUR_MAPS_KEY_HERE"/&gt;
+
         &lt;activity
             android:name="io.flutter.embedding.android.FlutterActivity"
             android:theme="@style/Theme.ShoppingGateFlutterSDK"
@@ -448,7 +439,9 @@ tasks.withType&lt;KotlinJvmCompile&gt;().configureEach {
         </section>
 
         <section id="implementation">
-            <h2>5. Launching the SDK</h2>
+            <h2>6. Launching the SDK</h2>
+            <p>When launching the SDK, pass the <strong>Mobile Number</strong> as an entry-point argument or via the
+                Intent initial route.</p>
             <div class="code-wrap">
                 <div class="code-header"><span>MainActivity.kt</span><button class="copy-btn"
                         onclick="copyCode(this)">Copy</button></div>
@@ -457,9 +450,18 @@ tasks.withType&lt;KotlinJvmCompile&gt;().configureEach {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        val userMobile = "+919876543210" // Required for authentication
+
         setContent {
             Button(onClick = {
-                startActivity(FlutterActivity.createDefaultIntent(this))
+                // Launch SDK with the user's mobile number
+                startActivity(
+                    FlutterActivity
+                        .withNewEngine()
+                        .initialRoute("/home?mobile=$userMobile")
+                        .build(this)
+                )
             }) {
                 Text("Launch ShoppingGate")
             }
@@ -470,12 +472,14 @@ class MainActivity : ComponentActivity() {
         </section>
 
         <section id="troubleshooting">
-            <h2>6. Troubleshooting</h2>
+            <h2>7. Troubleshooting</h2>
             <ul>
+                <li><strong>Map Blank:</strong> Verify your API key in the Google Console and check if the SHA-1
+                    fingerprint matches your debug/release keystore.</li>
+                <li><strong>Auth Failure:</strong> Ensure the mobile number is passed in E.164 format (e.g.,
+                    +1234567890).</li>
                 <li><strong>Hot Reload:</strong> Not supported for AAR integration. Clean and Rebuild to see changes.
                 </li>
-                <li><strong>ABI Issues:</strong> Ensure your emulator/device matches the <code>abiFilters</code>.</li>
-                <li><strong>Clean Build:</strong> Use <code>./gradlew clean</code> if classes are not found.</li>
             </ul>
         </section>
 
@@ -489,7 +493,6 @@ class MainActivity : ComponentActivity() {
         lucide.createIcons();
         hljs.highlightAll();
 
-        // Theme Toggle Logic
         function toggleTheme() {
             const html = document.documentElement;
             const icon = document.getElementById('theme-icon');
@@ -507,7 +510,6 @@ class MainActivity : ComponentActivity() {
             lucide.createIcons();
         }
 
-        // Copy Code Logic
         function copyCode(btn) {
             const code = btn.closest('.code-wrap').querySelector('code').innerText;
             navigator.clipboard.writeText(code).then(() => {
