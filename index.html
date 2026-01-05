@@ -381,7 +381,7 @@
                         <p style="font-size: 0.9rem; color: var(--text-muted);">Contains the compiled AAR artifacts,
                             Flutter engine binaries, and necessary assets for integration.</p>
                     </div>
-                    <a href="https://drive.google.com/file/d/1x0f-JYowjNwWvjtrmyf90ZSP-NDHXm1w/view?usp=sharing"
+                    <a href="https://drive.google.com/file/d/1-OORDKM5DeFIJTnZrkHk6X0ZDfckRJCH/view?usp=sharing"
                         target="_blank" class="download-btn">
                         <i data-lucide="download" size="18"></i> Download SDK (.zip)
                     </a>
@@ -397,7 +397,7 @@
                         <p style="font-size: 0.9rem; color: var(--text-muted);">A complete Android Studio project
                             demonstrating the boilerplate code for a native host application.</p>
                     </div>
-                    <a href="https://drive.google.com/file/d/1-O_oTwkSL0zWAQ8aTvhkNm7VmYuZEsu8/view?usp=sharing"
+                    <a href="https://drive.google.com/file/d/1mZqOdgvkwuolna92alcNJ8KpgIvz-CNT/view?usp=sharing"
                         target="_blank" class="download-btn secondary">
                         <i data-lucide="external-link" size="18"></i> View Sample Code
                     </a>
@@ -409,7 +409,7 @@
             <h2>1. Prerequisites</h2>
             <p>Verification of the following environment settings is required for a successful build:</p>
             <ul>
-                <li><strong>JDK:</strong> Version 17 <span class="badge">Strict Requirement</span></li>
+                <li><strong>JDK:</strong> Version 17 <span class="badge">Minmum Requirement</span></li>
                 <li><strong>Android Studio:</strong> Ladybug (2024.2.1) or higher</li>
                 <li><strong>Min SDK:</strong> API 29 (Android 10)</li>
             </ul>
@@ -520,7 +520,13 @@ dependencies {
                 <pre><code class="language-xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"&gt;
 
     &lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/&gt;
+    &lt;uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/&gt;
     &lt;uses-permission android:name="android.permission.INTERNET"/&gt;
+    &lt;!-- For Android 12 and below --&gt;
+    &lt;uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+    tools:ignore="ScopedStorage" /&gt;
+    &lt;uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    tools:ignore="ScopedStorage" /&gt;
 
     &lt;application&gt;
         &lt;!-- Google Maps API Key --&gt;
@@ -534,8 +540,11 @@ dependencies {
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize" /&gt;
+
     &lt;/application&gt;
-&lt;/manifest&gt;</code></pre>
+&lt;/manifest&gt;
+
+</code></pre>
             </div>
         </section>
 
@@ -551,18 +560,16 @@ dependencies {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        val userMobile = "+919876543210" // Required for authentication
 
         setContent {
             Button(onClick = {
-                // Launch SDK with the user's mobile number
-                startActivity(
-                    FlutterActivity
-                        .withNewEngine()
-                        .initialRoute("/home?mobile=$userMobile")
-                        .build(this)
-                )
+                val userMobile = "555555555"
+                // FIX: Use this@MainActivity instead of just this
+                val intent = FlutterActivity
+                    .withNewEngine()
+                    .initialRoute("/splash?mobile=$userMobile")
+                    .build(this@MainActivity)
+                startActivity(intent)
             }) {
                 Text("Launch ShoppingGate")
             }
