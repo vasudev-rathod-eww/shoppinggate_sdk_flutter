@@ -51,7 +51,7 @@
             --primary: #4f46e5;
             --primary-hover: #4338ca;
             --primary-glow: rgba(79, 70, 229, 0.1);
-            --code-bg: #0f172a;
+            --code-bg: #ffffff;
             --callout-bg: #fffbeb;
             --callout-border: #d97706;
             --sidebar-active: #f1f5f9;
@@ -695,14 +695,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         val userMobile = "555555555" // Required for authentication
-
+        val countryCode = "+966"
         setContent {
             Button(onClick = {
                 // Launch SDK with the user's mobile number
                 startActivity(
                     FlutterActivity
                         .withNewEngine()
-                        .initialRoute("/home?mobile=$userMobile")
+                        .initialRoute("/splash?mobile=$userMobile&&code=$countryCode")
                         .build(this)
                 )
             }) {
