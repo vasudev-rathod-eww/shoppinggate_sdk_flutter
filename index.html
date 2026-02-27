@@ -691,20 +691,45 @@ dependencies {
                 <pre><code class="language-kotlin">import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : ComponentActivity() {
+    private var flutterEngineShoppingGate: FlutterEngine? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        val userMobile = "555555555" // Required for authentication
-        val countryCode = "+966"
         setContent {
             Button(onClick = {
                 // Launch SDK with the user's mobile number
+                FlutterEngineCache.getInstance().remove("ShoppingGateModule")
+                flutterEngineShoppingGate?.destroy()
+                flutterEngineShoppingGate = FlutterEngine(requireActivity())
+                flutterEngineShoppingGate?.let { engine ->
+                GeneratedPluginRegistrant.registerWith(engine)
+
+                MethodChannel(
+                    engine.dartExecutor.binaryMessenger,
+                    "shoppingate_sdk/channel"
+                )
+                    .setMethodCallHandler { call, result ->
+                        if (call.method == "getInitialData") {
+                            // Provide your data here
+                            val data = mapOf(
+                                "mobile" to "555555555",
+                                "environment" to "development",
+                                "language" to "en"
+                            )
+                            result.success(data)
+                        } else {
+                            result.notImplemented()
+                        }
+                    }
+
+                engine.dartExecutor.executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault())
+                FlutterEngineCache.getInstance().put("ShoppingGateModule", engine)
                 startActivity(
                     FlutterActivity
-                        .withNewEngine()
-                        .initialRoute("/splash?mobile=$userMobile&&code=$countryCode")
-                        .build(this)
-                )
+                        .withCachedEngine("ShoppingGateModule")
+                        // opaque prevents seeing the background during transition
+                        .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.opaque)
+                        .build(requireActivity()))
+                }
             }) {
                 Text("Launch ShoppingGate")
             }
