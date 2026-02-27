@@ -22,6 +22,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/gradle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
 
     <style>
         :root {
@@ -51,7 +52,7 @@
             --primary: #4f46e5;
             --primary-hover: #4338ca;
             --primary-glow: rgba(79, 70, 229, 0.1);
-            --code-bg: #0f172a;
+            --code-bg: #ffffff;
             --callout-bg: #fffbeb;
             --callout-border: #d97706;
             --sidebar-active: #f1f5f9;
@@ -137,6 +138,62 @@
             font-weight: 600;
         }
 
+        /* --- Tabs System --- */
+        .tabs-nav {
+            display: flex;
+            gap: 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 1rem 0;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* --- Main Content --- */
         main {
             margin-left: 280px;
@@ -145,14 +202,8 @@
             max-width: 1100px;
         }
 
-        #prerequisites,
-        #credentials,
-        #repo-setup,
-        #host-config,
-        #manifest,
-        #implementation,
-        #troubleshooting,
-        #downloads {
+        /* Section IDs for Single and Multi scroll margins */
+        section[id] {
             scroll-margin-top: 50px;
         }
 
@@ -160,7 +211,6 @@
             display: flex;
             justify-content: flex-end;
             padding: 1rem 0;
-            /* background: var(--bg-body);  Removed to prevent overlap issues while scrolling */
             margin-bottom: 2rem;
             position: relative;
         }
@@ -248,7 +298,6 @@
             display: flex;
             gap: 6px;
             align-items: center;
-            /* Ensures dots and filename stay aligned */
         }
 
         .code-dots span {
@@ -257,24 +306,18 @@
             border-radius: 50%;
         }
 
-        /* Target each dot individually */
         .code-dots span:nth-child(1) {
             background: #ff5f56;
         }
 
-        /* Red */
         .code-dots span:nth-child(2) {
             background: #ffbd2e;
         }
 
-        /* Yellow */
         .code-dots span:nth-child(3) {
             background: #27c93f;
         }
 
-        /* Green */
-
-        /* Ensure the filename span doesn't get a background color */
         .code-dots span.filename {
             background: transparent;
             width: auto;
@@ -312,21 +355,27 @@
         pre {
             margin: 0 !important;
             padding: 1.25rem !important;
-            /* background: transparent !important; */
         }
 
         code {
-            font-family: 'Fira Code', monospace !important;
+            font-family: 'JetBrains Mono', monospace !important;
             font-weight: 500 !important;
-            /* Retina weight */
             font-size: 0.90rem !important;
         }
 
-        /* ADD IT HERE TO OVERRIDE THE THEME */
+        /* 1. Global: Make background always transparent */
         .hljs {
-            color: #adbac7 !important;
             background: transparent !important;
-            /* This ensures it uses your .code-wrap background */
+        }
+
+        /* 2. Light Mode: Code text becomes Pure Black */
+        [data-theme="light"] .hljs {
+            color: #000000 !important;
+        }
+
+        /* 3. Dark Mode: Code text stays Light/Silver so it's readable */
+        [data-theme="dark"] .hljs {
+            color: #adbac7 !important;
         }
 
         /* --- Cards & UI --- */
@@ -447,30 +496,57 @@
             ShoppingGate
         </div>
 
-        <div class="nav-label">Resources</div>
         <ul>
-            <li><a href="#downloads" class="active"><i data-lucide="download" size="16" style="margin-right:8px"></i>
-                    SDK Downloads</a></li>
+            <li><a href="#prerequisites">Prerequisites</a></li>
         </ul>
 
-        <div class="nav-label">Getting Started</div>
-        <ul>
-            <li><a href="#prerequisites">1. Prerequisites</a></li>
-            <li><a href="#credentials">2. API & Credentials</a></li>
-            <li><a href="#repo-setup">3. Repository Setup</a></li>
-        </ul>
+        <!-- Sidebar for Single Module -->
+        <div id="side-nav-single">
+            <div class="nav-label">Single Module</div>
+            <ul>
+                <li><a href="#downloads" class="active"><i data-lucide="download" size="16"
+                            style="margin-right:8px"></i> SDK Downloads</a></li>
+            </ul>
+            <div class="nav-label">Getting Started</div>
+            <ul>
+                <li><a href="#credentials">1. API & Credentials</a></li>
+                <li><a href="#repo-setup">2. Repository Setup</a></li>
+            </ul>
+            <div class="nav-label">Configuration</div>
+            <ul>
+                <li><a href="#host-config">3. Host Configuration</a></li>
+                <li><a href="#manifest">4. Android Manifest</a></li>
+            </ul>
+            <div class="nav-label">Usage</div>
+            <ul>
+                <li><a href="#implementation">5. Implementation</a></li>
+                <li><a href="#troubleshooting">6. Troubleshooting</a></li>
+            </ul>
+        </div>
 
-        <div class="nav-label">Configuration</div>
-        <ul>
-            <li><a href="#host-config">4. Host Configuration</a></li>
-            <li><a href="#manifest">5. Android Manifest</a></li>
-        </ul>
-
-        <div class="nav-label">Usage</div>
-        <ul>
-            <li><a href="#implementation">6. Implementation</a></li>
-            <li><a href="#troubleshooting">7. Troubleshooting</a></li>
-        </ul>
+        <!-- Sidebar for Multiple Module (Hidden by default) -->
+        <div id="side-nav-multi" style="display:none;">
+            <div class="nav-label">Multi Module </div>
+            <ul>
+                <li><a href="#m-integration" class="active"><i data-lucide="git-branch" size="16"
+                            style="margin-right:8px"></i> Git Integration</a></li>
+            </ul>
+            <div class="nav-label">Getting Started</div>
+            <ul>
+                <li><a href="#m-credentials">1. API & Credentials</a></li>
+                <li><a href="#m-repo-setup">2. Repository Setup</a></li>
+            </ul>
+            <div class="nav-label">Configuration</div>
+            <ul>
+                <li><a href="#m-host-config">3. Host Configuration</a></li>
+                <li><a href="#m-manifest">4. Android Manifest</a></li>
+            </ul>
+            <div class="nav-label">Usage</div>
+            <ul>
+                <li><a href="#m-implementation">5. Implementation</a></li>
+                <li><a href="#m-troubleshooting">6. Troubleshooting</a></li>
+            </ul>
+        </div>
     </aside>
 
     <main>
@@ -482,47 +558,13 @@
         </div>
 
         <header>
-            <h1>ShoppingGate SDK</h1>
-            <h3>Android Native Integration Guide (AAR).</h3>
-            <p>Complete technical guide for embedding the ShoppingGate SDK into native Android apps.</p>
+            <h1>Shoppingate SDK for Android Native</h1>
+            <h3>Android Native Integration Guide</h3>
+            <p>Complete technical guide for embedding the Shoppingate SDK into native Android apps.</p>
         </header>
 
-        <section id="downloads">
-            <h2>SDK Downloads</h2>
-            <div class="download-grid">
-                <div class="download-card">
-                    <div>
-                        <div style="margin-bottom: 1rem;"><i data-lucide="box" style="color: var(--primary)"></i></div>
-                        <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Core Flutter
-                            SDK</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);">Compiled AAR artifacts, engine
-                            binaries, and required assets.</p>
-                    </div>
-                    <a href="https://drive.google.com/file/d/1-OORDKM5DeFIJTnZrkHk6X0ZDfckRJCH/view?usp=sharing"
-                        target="_blank" class="download-btn">
-                        <i data-lucide="download" size="18"></i> Download SDK
-                    </a>
-                </div>
-
-                <div class="download-card">
-                    <div>
-                        <div style="margin-bottom: 1rem;"><i data-lucide="code-2" style="color: var(--primary)"></i>
-                        </div>
-                        <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Reference
-                            Project</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);">Android Studio starter project with
-                            boilerplate implementation.</p>
-                    </div>
-                    <a href="https://drive.google.com/file/d/1mZqOdgvkwuolna92alcNJ8KpgIvz-CNT/view?usp=sharing"
-                        target="_blank" class="download-btn secondary">
-                        <i data-lucide="external-link" size="18"></i> View Samples
-                    </a>
-                </div>
-            </div>
-        </section>
-
         <section id="prerequisites">
-            <h2>1. Prerequisites</h2>
+            <h2>Prerequisites</h2>
             <p>Verification of the following environment settings is required for a successful build:</p>
             <ul style="list-style-type: none; padding-left: 0;">
                 <li style="display: flex; align-items: center; gap: 10px;">
@@ -540,49 +582,96 @@
             </ul>
         </section>
 
-        <section id="credentials">
-            <h2>2. API & Required Parameters</h2>
-            <p>To initialize the SDK, you must have the following configuration parameters ready:</p>
-            <div class="file-tree">
-                <span style="color: var(--primary)">●</span> <strong>Google Maps API Key:</strong> Required for location
-                services.<br>
-                <span style="color: var(--primary)">●</span> <strong>User Mobile Number:</strong> Session authentication
-                (E.164 format).
-            </div>
+        <!-- TABS START -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab(event, 'single-module')">Single Module</button>
+            <button class="tab-btn" onclick="switchTab(event, 'multi-module')">Multiple Module</button>
+        </div>
 
-            <div class="callout">
-                <i data-lucide="alert-circle" size="20"></i>
-                <div>
-                    <strong>Maps Restriction:</strong> Ensure the Google Maps API Key has "Maps SDK for Android" enabled
-                    and is restricted to your package name and SHA-1 fingerprint.
+        <div id="single-module" class="tab-content active">
+
+            <section id="downloads">
+                <h2>SDK Downloads</h2>
+                <div class="download-grid">
+                    <div class="download-card">
+                        <div>
+                            <div style="margin-bottom: 1rem;"><i data-lucide="box" style="color: var(--primary)"></i>
+                            </div>
+                            <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Core Flutter
+                                SDK</strong>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">Compiled AAR artifacts, engine
+                                binaries, and required assets.</p>
+                        </div>
+                        <a href="https://drive.google.com/file/d/1-OORDKM5DeFIJTnZrkHk6X0ZDfckRJCH/view?usp=sharing"
+                            target="_blank" class="download-btn">
+                            <i data-lucide="download" size="18"></i> Download SDK
+                        </a>
+                    </div>
+
+                    <div class="download-card">
+                        <div>
+                            <div style="margin-bottom: 1rem;"><i data-lucide="code-2" style="color: var(--primary)"></i>
+                            </div>
+                            <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Reference
+                                Project</strong>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">Android Studio starter project with
+                                boilerplate implementation.</p>
+                        </div>
+                        <a href="https://drive.google.com/file/d/1mZqOdgvkwuolna92alcNJ8KpgIvz-CNT/view?usp=sharing"
+                            target="_blank" class="download-btn secondary">
+                            <i data-lucide="external-link" size="18"></i> View Samples
+                        </a>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section id="repo-setup">
-            <h2>3. Repository Setup</h2>
-            <p>Place the <strong><code>ShoppingGateSDK</code></strong> folder in your project's root directory</p>
-            <div class="file-tree">
-                Project-Root/ <br>
-                ├── app/ <br>
-                ├── <span style="color: var(--primary); font-weight: 600;">ShoppingGateSDK/</span> <-- ShoppingGate SDK
-                    folder <br>
-                    ├── build.gradle.kts <br>
-                    └── settings.gradle.kts
-            </div>
-        </section>
-
-        <section id="host-config">
-            <h2>4. Host Configuration</h2>
-
-            <h3>A. Settings Gradle</h3>
-            <div class="code-wrap">
-                <div class="code-header">
-                    <div class="code-dots"><span></span><span></span><span></span><span
-                            class="filename">settings.gradle.kts</span></div>
-                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+            <section id="credentials">
+                <h2>1. API & Required Parameters</h2>
+                <p>To initialize the SDK, you must have the following configuration parameters ready:</p>
+                <div class="file-tree">
+                    <span style="color: var(--primary)">●</span> <strong>Google Maps API Key:</strong> Required for
+                    location
+                    services.<br>
+                    <span style="color: var(--primary)">●</span> <strong>User Mobile Number:</strong> Session
+                    authentication
+                    (E.164 format).
                 </div>
-                <pre><code class="language-gradle">dependencyResolutionManagement {
+
+                <div class="callout">
+                    <i data-lucide="alert-circle" size="20"></i>
+                    <div>
+                        <strong>Maps Restriction:</strong> Ensure the Google Maps API Key has "Maps SDK for Android"
+                        enabled
+                        and is restricted to your package name and SHA-1 fingerprint.
+                    </div>
+                </div>
+            </section>
+
+            <section id="repo-setup">
+                <h2>2. Repository Setup</h2>
+                <p>Place the <strong><code>ShoppingGateSDK</code></strong> folder in your project's root directory</p>
+                <div class="file-tree">
+                    Project-Root/ <br>
+                    ├── app/ <br>
+                    ├── <span style="color: var(--primary); font-weight: 600;">ShoppingGateSDK/</span> <-- ShoppingGate
+                        SDK folder <br>
+                        ├── build.gradle.kts <br>
+                        └── settings.gradle.kts
+                </div>
+            </section>
+
+            <section id="host-config">
+                <h2>3. Host Configuration</h2>
+
+                <h3>A. Settings Gradle</h3>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">settings.gradle.kts</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-gradle">dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
@@ -599,16 +688,17 @@
         }
     }
 }</code></pre>
-            </div>
-
-            <h3>B. App-Level Gradle</h3>
-            <div class="code-wrap">
-                <div class="code-header">
-                    <div class="code-dots"><span></span><span></span><span></span><span
-                            class="filename">app/build.gradle.kts</span></div>
-                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
-                <pre><code class="language-gradle">android {
+
+                <h3>B. App-Level Gradle</h3>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">app/build.gradle.kts</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-gradle">android {
     defaultConfig {
         // Filter for architectures supported by Flutter
         ndk { 
@@ -638,19 +728,21 @@ dependencies {
     implementation("com.shoppinggate.sdk.customer:flutter_release:1.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }</code></pre>
-            </div>
-        </section>
-
-        <section id="manifest">
-            <h2>5. Android Manifest Registry</h2>
-            <p>Register the Google Maps API Key and the SDK Activity. Replace YOUR_MAPS_KEY with your actual key.</p>
-            <div class="code-wrap">
-                <div class="code-header">
-                    <div class="code-dots"><span></span><span></span><span></span><span
-                            class="filename">AndroidManifest.xml</span></div>
-                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
-                <pre><code class="language-xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"&gt;
+            </section>
+
+            <section id="manifest">
+                <h2>4. Android Manifest Registry</h2>
+                <p>Register the Google Maps API Key and the SDK Activity. Replace YOUR_MAPS_KEY with your actual key.
+                </p>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">AndroidManifest.xml</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"&gt;
 
     &lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/&gt;
     &lt;uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/&gt;
@@ -675,58 +767,366 @@ dependencies {
             android:windowSoftInputMode="adjustResize" /&gt;
     &lt;/application&gt;
 &lt;/manifest&gt;</code></pre>
-            </div>
-        </section>
-
-        <section id="implementation">
-            <h2>6. Launching the SDK</h2>
-            <p>When launching the SDK, pass the Mobile Number as an entry-point argument or via the Intent initial
-                route.</p>
-            <div class="code-wrap">
-                <div class="code-header">
-                    <div class="code-dots"><span></span><span></span><span></span><span
-                            class="filename">MainActivity.kt</span></div>
-                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
-                <pre><code class="language-kotlin">import io.flutter.embedding.android.FlutterActivity
+            </section>
+
+            <section id="implementation">
+                <h2>5. Launching the SDK</h2>
+                <p>When launching the SDK, pass the Mobile Number as an entry-point argument or via the Intent initial
+                    route.</p>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">MainActivity.kt</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-kotlin">import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : ComponentActivity() {
+    private var flutterEngineShoppingGate: FlutterEngine? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        val userMobile = "555555555" // Required for authentication
-
         setContent {
             Button(onClick = {
                 // Launch SDK with the user's mobile number
+                FlutterEngineCache.getInstance().remove("ShoppingGateModule")
+                flutterEngineShoppingGate?.destroy()
+                flutterEngineShoppingGate = FlutterEngine(requireActivity())
+                flutterEngineShoppingGate?.let { engine ->
+                GeneratedPluginRegistrant.registerWith(engine)
+
+                MethodChannel(
+                    engine.dartExecutor.binaryMessenger,
+                    "shoppingate_sdk/channel"
+                )
+                    .setMethodCallHandler { call, result ->
+                        if (call.method == "getInitialData") {
+                            // Provide your data here
+                            val data = mapOf(
+                                "mobile" to "555555555",
+                                "environment" to "development",
+                                "language" to "en"
+                            )
+                            result.success(data)
+                        } else {
+                            result.notImplemented()
+                        }
+                    }
+
+                engine.dartExecutor.executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault())
+                FlutterEngineCache.getInstance().put("ShoppingGateModule", engine)
                 startActivity(
                     FlutterActivity
-                        .withNewEngine()
-                        .initialRoute("/home?mobile=$userMobile")
-                        .build(this)
-                )
+                        .withCachedEngine("ShoppingGateModule")
+                        // opaque prevents seeing the background during transition
+                        .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.opaque)
+                        .build(requireActivity()))
+                }
             }) {
                 Text("Launch ShoppingGate")
             }
         }
     }
 }</code></pre>
-            </div>
-        </section>
+                </div>
+            </section>
 
-        <section id="troubleshooting">
-            <h2>7. Troubleshooting</h2>
-            <div class="callout" style="background: rgba(37, 99, 235, 0.05); border-color: var(--primary);">
-                <i data-lucide="help-circle" size="20" style="color: var(--primary)"></i>
-                <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
-                    <li><strong>Blank Map:</strong> Check if the Google Maps API Key is enabled and restricted
-                        correctly.</li>
-                    <li><strong>AAR Rebuild:</strong> Flutter AAR changes require a project <strong>Clean and
-                            Rebuild</strong> to take effect.</li>
-                    <li><strong>Auth:</strong> Ensure the phone number starts without the country code (+).</li>
-                </ul>
-            </div>
-        </section>
+            <section id="troubleshooting">
+                <h2>6. Troubleshooting</h2>
+                <div class="callout" style="background: rgba(37, 99, 235, 0.05); border-color: var(--primary);">
+                    <i data-lucide="help-circle" size="20" style="color: var(--primary)"></i>
+                    <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
+                        <li><strong>Blank Map:</strong> Check if the Google Maps API Key is enabled and restricted
+                            correctly.</li>
+                        <li><strong>AAR Rebuild:</strong> Flutter AAR changes require a project <strong>Clean and
+                                Rebuild</strong> to take effect.</li>
+                        <li><strong>Auth:</strong> Ensure the phone number starts without the country code (+).</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <div id="multi-module" class="tab-content">
+            <section id="m-integration">
+                <h2>Multiple Module Integration</h2>
+                <p>For modular projects, add the SDK via Git in your Dart configuration.</p>
+                <h3>Dart / Flutter Dependency</h3>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">pubspec.yaml</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-yaml">dependencies:
+  shoppingggate_flutter_sdk:
+    git:
+      url: https://github.com/vasudev-rathod-eww/shoppingate_sdk.git
+      ref: main # or a specific tag/branch
+      path: shoppingggate_flutter_sdk # main repo folder name</code></pre>
+                </div>
+            </section>
+
+            <section id="m-credentials">
+                <h2>1. API & Required Parameters</h2>
+                <p>To initialize the SDK, you must have the following configuration parameters ready:</p>
+                <div class="file-tree">
+                    <span style="color: var(--primary)">●</span> <strong>Google Maps API Key:</strong> Required for
+                    location
+                    services.<br>
+                    <span style="color: var(--primary)">●</span> <strong>User Mobile Number:</strong> Session
+                    authentication
+                    (E.164 format).
+                </div>
+
+                <div class="callout">
+                    <i data-lucide="alert-circle" size="20"></i>
+                    <div>
+                        <strong>Maps Restriction:</strong> Ensure the Google Maps API Key has "Maps SDK for Android"
+                        enabled
+                        and is restricted to your package name and SHA-1 fingerprint.
+                    </div>
+                </div>
+            </section>
+
+            <section id="m-repo-setup">
+                <h2>2. Repository Setup</h2>
+                <p>Place the <strong><code>ShoppingGateSDK</code></strong> folder in your project's root directory</p>
+                <div class="file-tree">
+                    Project-Root/ <br>
+                    ├── app/ <br>
+                    ├── <span style="color: var(--primary); font-weight: 600;">ShoppingGateSDK/</span> <-- ShoppingGate
+                        SDK folder <br>
+                        ├── build.gradle.kts <br>
+                        └── settings.gradle.kts
+                </div>
+            </section>
+
+            <section id="m-host-config">
+                <h2>3. Host Configuration</h2>
+
+                <h3>A. Settings Gradle</h3>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">settings.gradle.kts</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-gradle">dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+
+        // Local ShoppingGate SDK
+        maven {
+            url = uri("${rootProject.projectDir}/ShoppingGateSDK") 
+        }
+
+        // Flutter engine binaries
+        maven { 
+            url = uri("https://storage.googleapis.com/download.flutter.io") 
+        }
+    }
+}</code></pre>
+                </div>
+
+                <h3>B. App-Level Gradle</h3>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">app/build.gradle.kts</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-gradle">android {
+    defaultConfig {
+        // Filter for architectures supported by Flutter
+        ndk { 
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64") 
+        }
+        multiDexEnabled = true
+    }
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true 
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
+}
+
+tasks.withType<KotlinJvmCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
+dependencies {
+    implementation("com.shoppinggate.sdk.customer:flutter_release:1.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+}</code></pre>
+                </div>
+            </section>
+
+            <section id="m-manifest">
+                <h2>4. Android Manifest Registry</h2>
+                <p>Register the Google Maps API Key and the SDK Activity. Replace YOUR_MAPS_KEY with your actual key.
+                </p>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">AndroidManifest.xml</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"&gt;
+
+    &lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/&gt;
+    &lt;uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/&gt;
+    &lt;uses-permission android:name="android.permission.INTERNET"/&gt;
+    &lt;!-- For Android 12 and lower --&gt;
+    &lt;uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" /&gt;
+    &lt;uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" /&gt;
+
+    &lt;application&gt;
+        &lt;!-- Google Maps API Key --&gt;
+        &lt;meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="YOUR_MAPS_KEY_HERE"/&gt;
+
+        &lt;activity
+            android:name="io.flutter.embedding.android.FlutterActivity"
+            android:theme="@style/Theme.ShoppingGateFlutterSDK"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize" /&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;</code></pre>
+                </div>
+            </section>
+
+            <section id="m-implementation">
+                <h2>5. Launching the SDK</h2>
+                <p>When launching the SDK, pass the Mobile Number as an entry-point argument or via the Intent initial
+                    route.</p>
+                <div class="code-wrap">
+                    <div class="code-header">
+                        <div class="code-dots"><span></span><span></span><span></span><span
+                                class="filename">MainActivity.kt</span></div>
+                        <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i>
+                            Copy</button>
+                    </div>
+                    <pre><code class="language-kotlin">import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : ComponentActivity() {
+    private var flutterEngineShoppingGate: FlutterEngine? = null
+    private var flutterEngineTest: FlutterEngine? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            Button(onClick = {
+                // Launch SDK with the user's mobile number
+                FlutterEngineCache.getInstance().remove("ShoppingGateModule")
+                flutterEngineShoppingGate?.destroy()
+                flutterEngineShoppingGate = FlutterEngine(requireActivity())
+                flutterEngineShoppingGate?.let { engine ->
+                    GeneratedPluginRegistrant.registerWith(engine)
+
+                    MethodChannel(
+                        engine.dartExecutor.binaryMessenger,
+                        "shoppingate_sdk/channel"
+                    )
+                        .setMethodCallHandler { call, result ->
+                            if (call.method == "getInitialData") {
+                                // Provide your data here
+                                val data = mapOf(
+                                    "mobile" to "555555555",
+                                    "environment" to "development",
+                                    "language" to "en"
+                                )
+                                result.success(data)
+                            } else {
+                                result.notImplemented()
+                            }
+                        }
+
+                    val loader = FlutterInjector.instance().flutterLoader()
+                    loader.startInitialization(requireActivity())
+                    loader.ensureInitializationComplete(requireActivity(), null)
+                    val bundlePath = loader.findAppBundlePath()
+                    val entrypoint = DartExecutor.DartEntrypoint(
+                        bundlePath,
+                        "launchShoppingGate" // This must match your Dart function name
+                    )
+                    engine.dartExecutor.executeDartEntrypoint(entrypoint)
+                    FlutterEngineCache.getInstance().put("ShoppingGateModule", engine)
+                    startActivity(
+                        FlutterActivity
+                            .withCachedEngine("ShoppingGateModule")
+                            // opaque prevents seeing the background during transition
+                            .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.opaque)
+                            .build(requireActivity()))
+                }
+            }) {
+                Text("Launch ShoppingGate")
+            }
+            Spacer(modifier = Modifier.height(30.dp))
+            Button(onClick = {
+                FlutterEngineCache.getInstance().remove("TestModule")
+                flutterEngineTest?.destroy()
+                flutterEngineTest = FlutterEngine(requireActivity())
+                flutterEngineTest?.let { engine ->
+                    GeneratedPluginRegistrant.registerWith(engine)
+                    val loader = FlutterInjector.instance().flutterLoader()
+                    loader.startInitialization(requireActivity())
+                    loader.ensureInitializationComplete(requireActivity(), null)
+                    val bundlePath = loader.findAppBundlePath()
+                    val entrypoint = DartExecutor.DartEntrypoint(
+                        bundlePath,
+                        "launchTestModule" // This must match your Dart function name
+                    )
+                    engine.dartExecutor.executeDartEntrypoint(entrypoint)
+                    FlutterEngineCache.getInstance().put("TestModule", engine)
+
+                    startActivity(
+                        FlutterActivity
+                            .withCachedEngine("TestModule")
+                            // opaque prevents seeing the background during transition
+                            .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.opaque)
+                            .build(requireActivity()))
+                }
+            }) {
+                Text("Launch TestModule")
+            }
+        }
+    }
+}</code></pre>
+                </div>
+            </section>
+
+            <section id="m-troubleshooting">
+                <h2>6. Troubleshooting</h2>
+                <div class="callout" style="background: rgba(37, 99, 235, 0.05); border-color: var(--primary);">
+                    <i data-lucide="help-circle" size="20" style="color: var(--primary)"></i>
+                    <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
+                        <li><strong>Blank Map:</strong> Check if the Google Maps API Key is enabled and restricted
+                            correctly.</li>
+                        <li><strong>AAR Rebuild:</strong> Flutter AAR changes require a project <strong>Clean and
+                                Rebuild</strong> to take effect.</li>
+                        <li><strong>Auth:</strong> Ensure the phone number starts without the country code (+).</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+        <!-- TABS END -->
 
         <footer
             style="margin-top: 5rem; padding-top: 2rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem;">
@@ -737,6 +1137,40 @@ class MainActivity : ComponentActivity() {
     <script>
         lucide.createIcons();
         hljs.highlightAll();
+
+        function switchTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+
+            // Toggle Tab Content
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+
+            // Toggle Buttons
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            // --- Toggle Sidebar Menu ---
+            const singleNav = document.getElementById('side-nav-single');
+            const multiNav = document.getElementById('side-nav-multi');
+
+            if (tabName === 'single-module') {
+                singleNav.style.display = 'block';
+                multiNav.style.display = 'none';
+            } else {
+                singleNav.style.display = 'none';
+                multiNav.style.display = 'block';
+            }
+
+            // Re-highlight codes in the new tab
+            hljs.highlightAll();
+        }
 
         function toggleTheme() {
             const html = document.documentElement;
