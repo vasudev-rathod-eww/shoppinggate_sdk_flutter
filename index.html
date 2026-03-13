@@ -482,9 +482,9 @@
         </div>
 
         <header>
-            <h1>ShoppingGate SDK For Android Native</h1>
-            <h3>Android Native Integration Guide (AAR).</h3>
-            <p>Complete technical guide for embedding the ShoppingGate SDK into native Android apps.</p>
+            <h1>ShoppingGate Travel SDK For Android Native</h1>
+            <h3>Android Native Integration Guide (AAR + Native Facade).</h3>
+            <p>Complete technical guide for embedding the ShoppingGate Travel SDK into native Android apps.</p>
         </header>
 
         <section id="downloads">
@@ -493,8 +493,7 @@
                 <div class="download-card">
                     <div>
                         <div style="margin-bottom: 1rem;"><i data-lucide="box" style="color: var(--primary)"></i></div>
-                        <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Core Flutter
-                            SDK</strong>
+                        <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Core Flutter SDK</strong>
                         <p style="font-size: 0.85rem; color: var(--text-muted);">Compiled AAR artifacts, engine
                             binaries, and required assets.</p>
                     </div>
@@ -513,7 +512,7 @@
                         <p style="font-size: 0.85rem; color: var(--text-muted);">Android Studio starter project with
                             implementation.</p>
                     </div>
-                    <a href="https://drive.google.com/file/d/1Ri-TBNikOYPzagL0o_3YsLsDbvQR4QnF/view?usp=sharing"
+                    <a href="https://drive.google.com/file/d/1Ri-TBNikOYPzagL0o_3YsLsDbvQR4QnF/view"
                         target="_blank" class="download-btn secondary">
                         <i data-lucide="external-link" size="18"></i> View Samples
                     </a>
@@ -535,40 +534,39 @@
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <i data-lucide="check-circle-2" size="18" style="color: #10b981;"></i>
-                    <span><strong>Min SDK:</strong> API 29 (Android 10)</span>
+                    <span><strong>Min SDK:</strong> API 24, <strong>Target SDK:</strong> 35, <strong>Compile SDK:</strong> 36</span>
                 </li>
             </ul>
         </section>
 
         <section id="credentials">
             <h2>2. API & Required Parameters</h2>
-            <p>To initialize the SDK, you must have the following configuration parameters ready:</p>
+            <p>To initialize the SDK, you must provide the following required payload values:</p>
             <div class="file-tree">
-                <span style="color: var(--primary)">●</span> <strong>Google Maps API Key:</strong> Required for location
-                services.<br>
-                <span style="color: var(--primary)">●</span> <strong>User Mobile Number:</strong> Required for session
-                authentication.
+                <span style="color: var(--primary)">●</span> <strong>phoneNumber:</strong> User mobile number (without +).<br>
+                <span style="color: var(--primary)">●</span> <strong>countryCode:</strong> Example: +91, +966.<br>
+                <span style="color: var(--primary)">●</span> <strong>environment:</strong> development or production.<br>
+                <span style="color: var(--primary)">●</span> <strong>language:</strong> en or ar.<br>
             </div>
 
             <div class="callout">
                 <i data-lucide="alert-circle" size="20"></i>
                 <div>
-                    <strong>Maps Restriction:</strong> Ensure the Google Maps API Key has "Maps SDK for Android" enabled
-                    and is restricted to your package name and SHA-1 fingerprint.
+                    <strong>Validation Rule:</strong> SDK accepts only <strong>development</strong> or
+                    <strong>production</strong> in environment. Any other value will fail initialization.
                 </div>
             </div>
         </section>
 
         <section id="repo-setup">
             <h2>3. Repository Setup</h2>
-            <p>Place the <strong><code>ShoppingGateSDK</code></strong> folder in your project's root directory</p>
+            <p>Place the <strong><code>ShoppingGateSDK</code></strong> folder in your project's root directory and keep
+                the native helper file in host app source.</p>
             <div class="file-tree">
                 Project-Root/ <br>
                 ├── app/ <br>
                 ├── <span style="color: var(--primary); font-weight: 600;">ShoppingGateSDK/</span> <-- ShoppingGate SDK
-                    folder <br>
-                    ├── build.gradle.kts <br>
-                    └── settings.gradle.kts
+                    folder (AAR repo) <br>
             </div>
         </section>
 
@@ -609,33 +607,28 @@
                     <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
                 <pre><code class="language-gradle">android {
+    compileSdk = 36
+
     defaultConfig {
-        // Filter for architectures supported by Flutter
-        ndk { 
-            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64") 
-        }
+        minSdk = 24
+        targetSdk = 35
         multiDexEnabled = true
     }
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true 
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
-    }
-}
 
-tasks.withType<KotlinJvmCompile>().configureEach {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }
 
 dependencies {
-    implementation("com.shoppinggate.sdk.customer:flutter_release:1.0")
+    debugImplementation("com.shoppingate.sdk.travel:flutter_release:1.0")
+    releaseImplementation("com.shoppingate.sdk.travel:flutter_release:1.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }</code></pre>
             </div>
@@ -643,7 +636,7 @@ dependencies {
 
         <section id="manifest">
             <h2>5. Android Manifest Registry</h2>
-            <p>Register the Google Maps API Key and the SDK Activity. Replace YOUR_MAPS_KEY with your actual key.</p>
+            <p>Register the Flutter host activity. Add Google Maps key if your flow uses maps.</p>
             <div class="code-wrap">
                 <div class="code-header">
                     <div class="code-dots"><span></span><span></span><span></span><span
@@ -652,24 +645,20 @@ dependencies {
                 </div>
                 <pre><code class="language-xml">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"&gt;
 
+    &lt;uses-permission android:name="android.permission.INTERNET"/&gt;
     &lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/&gt;
     &lt;uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/&gt;
-    &lt;uses-permission android:name="android.permission.INTERNET"/&gt;
-    &lt;!-- For Android 12 and lower --&gt;
-    &lt;uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" /&gt;
-    &lt;uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" /&gt;
 
     &lt;application&gt;
-        &lt;!-- Google Maps API Key --&gt;
+        &lt;!-- Optional: Required when map screens are used --&gt;
         &lt;meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="YOUR_MAPS_KEY_HERE"/&gt;
 
         &lt;activity
             android:name="io.flutter.embedding.android.FlutterActivity"
-            android:theme="@style/Theme.ShoppingGateFlutterSDK"
+            android:exported="false"
+            android:launchMode="singleTop"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize" /&gt;
@@ -680,60 +669,340 @@ dependencies {
 
         <section id="implementation">
             <h2>6. Launching the SDK</h2>
-            <p>When launching the SDK, pass the Mobile Number as an entry-point argument or via the Intent initial
-                route.</p>
+            <p>Use the SDK native facade helper (<strong>SgTravelNative</strong>). Do not implement MethodChannel
+                wiring directly in partner app.</p>
+            <div class="callout" style="background: rgba(16, 185, 129, 0.08); border-color: #10b981;">
+                <i data-lucide="info" size="20" style="color: #10b981"></i>
+                <p style="margin: 0;"><strong>Testing Note:</strong> <br/>
+                    Use below Phone number and country code for testing<br/>
+                    <strong>phoneNumber: 554433223</strong><br/>
+                    <strong>countryCode: +966</strong>
+                </p>
+            </div>
+
+            <h3>A. Native Facade Helper</h3>
+            <div class="code-wrap">
+                <div class="code-header">
+                    <div class="code-dots"><span></span><span></span><span></span><span
+                            class="filename">SgTravelNative.kt</span></div>
+                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                </div>
+                <pre><code class="language-kotlin">package com.sg.travelsdkdemo
+
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import io.flutter.FlutterInjector
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.engine.FlutterEngineCache
+import io.flutter.embedding.engine.dart.DartExecutor
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
+
+object SgTravelNative {
+    const val CHANNEL_NAME: String = "shoppingate_travel_sdk/channel"
+    private const val ENGINE_ID: String = "sg_travel_sdk_engine"
+
+    const val METHOD_INITIALIZE: String = "initialize"
+    const val METHOD_OPEN_BOOKING_FLOW: String = "openBookingFlow"
+    const val METHOD_OPEN_ORDER_FLOW: String = "openOrderFlow"
+
+    const val METHOD_HOST_READY: String = "hostReady"
+    const val METHOD_SET_USER_DATA: String = "setUserData"
+    const val METHOD_CLOSE_SDK: String = "closeSDK"
+
+    private const val ERROR_MISSING_INITIAL_DATA = "MISSING_INITIAL_DATA"
+    private const val ERROR_INVALID_ARGUMENT = "INVALID_ARGUMENT"
+    private const val ERROR_INVALID_ENVIRONMENT = "INVALID_ENVIRONMENT"
+
+    private const val KEY_PHONE = "phoneNumber"
+    private const val KEY_COUNTRY = "countryCode"
+    private const val KEY_ENV = "environment"
+    private const val KEY_LANG = "language"
+
+    private val lock = Any()
+    private var latestData: MutableMap&lt;String, Any&gt; = mutableMapOf()
+    private var isInitialized: Boolean = false
+    private var isFlutterReady: Boolean = false
+    private var methodChannel: MethodChannel? = null
+    private val pendingCalls: MutableList&lt;ChannelCall&gt; = mutableListOf()
+
+    private data class ChannelCall(
+        val method: String,
+        val arguments: Any?,
+    )
+
+    data class SgTravelRequest(
+        val phoneNumber: String,
+        val countryCode: String,
+        val environment: String,
+        val language: String,
+    )
+
+    @JvmStatic
+    fun initialize(request: SgTravelRequest) {
+        val normalized = normalizeRequest(request)
+
+        synchronized(lock) {
+            latestData = normalized
+            isInitialized = true
+        }
+
+        dispatchOrQueue(
+            method = METHOD_INITIALIZE,
+            arguments = HashMap(normalized),
+        )
+    }
+
+    @JvmStatic
+    fun openBooking(context: Context) {
+        ensureInitialized()
+        ensureEngineStarted(context)
+        launchHost(context)
+        dispatchOrQueue(method = METHOD_OPEN_BOOKING_FLOW, arguments = null)
+    }
+
+    @JvmStatic
+    fun openOrder(context: Context) {
+        ensureInitialized()
+        ensureEngineStarted(context)
+        launchHost(context)
+        dispatchOrQueue(method = METHOD_OPEN_ORDER_FLOW, arguments = null)
+    }
+
+    @JvmStatic
+    fun attachChannel(engine: FlutterEngine) {
+        val channel = MethodChannel(engine.dartExecutor.binaryMessenger, CHANNEL_NAME)
+        synchronized(lock) {
+            methodChannel = channel
+            isFlutterReady = false
+        }
+
+        channel.setMethodCallHandler(::handleMethodCall)
+        flushPendingCallsIfReady()
+    }
+
+    private fun launchHost(context: Context) {
+        val intent = FlutterActivity
+            .withCachedEngine(ENGINE_ID)
+            .destroyEngineWithActivity(false)
+            .build(context)
+
+        if (context !is Activity) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        context.startActivity(intent)
+    }
+
+    private fun ensureEngineStarted(context: Context) {
+        if (FlutterEngineCache.getInstance().get(ENGINE_ID) != null) {
+            return
+        }
+
+        val appContext = context.applicationContext
+        val loader = FlutterInjector.instance().flutterLoader()
+        loader.startInitialization(appContext)
+        loader.ensureInitializationComplete(appContext, emptyArray())
+
+        val engine = FlutterEngine(appContext)
+        registerPluginsSafely(engine)
+        attachChannel(engine)
+
+        val entrypoint = DartExecutor.DartEntrypoint(
+            loader.findAppBundlePath(),
+            "travelSdkHostEntryPoint",
+        )
+        engine.dartExecutor.executeDartEntrypoint(entrypoint)
+        FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
+    }
+
+    private fun registerPluginsSafely(engine: FlutterEngine) {
+        try {
+            val generatedPluginRegistrant = Class.forName("io.flutter.plugins.GeneratedPluginRegistrant")
+            val registrationMethod = generatedPluginRegistrant.getDeclaredMethod(
+                "registerWith",
+                FlutterEngine::class.java,
+            )
+            registrationMethod.invoke(null, engine)
+        } catch (_: Throwable) {
+            // Plugin auto-registration fallback varies by embedding configuration.
+        }
+    }
+
+    private fun handleMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
+            METHOD_HOST_READY -&gt; {
+                synchronized(lock) {
+                    isFlutterReady = true
+                }
+                result.success(null)
+                flushPendingCallsIfReady()
+            }
+
+            METHOD_SET_USER_DATA -&gt; {
+                val incoming = call.arguments as? Map&lt;*, *&gt;
+                if (incoming == null) {
+                    result.error(ERROR_INVALID_ARGUMENT, "Expected map payload", null)
+                    return
+                }
+
+                try {
+                    val normalized = normalizePayload(incoming)
+                    synchronized(lock) {
+                        latestData = normalized
+                    }
+                    result.success(null)
+                } catch (e: ValidationException) {
+                    result.error(e.code, e.message, null)
+                }
+            }
+
+            METHOD_CLOSE_SDK -&gt; {
+                result.success(null)
+                System.exit(0)
+            }
+
+            else -&gt; result.notImplemented()
+        }
+    }
+
+    private fun dispatchOrQueue(method: String, arguments: Any?) {
+        val activeChannel = synchronized(lock) {
+            if (methodChannel == null || !isFlutterReady) {
+                pendingCalls.add(ChannelCall(method = method, arguments = arguments))
+                null
+            } else {
+                methodChannel
+            }
+        }
+
+        activeChannel?.invokeMethod(method, arguments)
+    }
+
+    private fun flushPendingCallsIfReady() {
+        val (channel, calls) = synchronized(lock) {
+            if (methodChannel == null || !isFlutterReady || pendingCalls.isEmpty()) {
+                return
+            }
+
+            val snapshot = pendingCalls.toList()
+            pendingCalls.clear()
+            Pair(methodChannel!!, snapshot)
+        }
+
+        calls.forEach { call -&gt;
+            channel.invokeMethod(call.method, call.arguments)
+        }
+    }
+
+    private fun ensureInitialized() {
+        val initialized = synchronized(lock) { isInitialized }
+        if (!initialized) {
+            throw ValidationException(
+                ERROR_MISSING_INITIAL_DATA,
+                "Initialize request not found. Call SgTravelNative.initialize first.",
+            )
+        }
+    }
+
+    private fun normalizeRequest(request: SgTravelRequest): MutableMap&lt;String, Any&gt; {
+        val raw = mapOf(
+            KEY_PHONE to request.phoneNumber,
+            KEY_COUNTRY to request.countryCode,
+            KEY_ENV to request.environment,
+            KEY_LANG to request.language,
+        )
+        return normalizePayload(raw)
+    }
+
+    private fun normalizePayload(raw: Map&lt;*, *&gt;): MutableMap&lt;String, Any&gt; {
+        val phone = readRequiredString(raw, KEY_PHONE)
+        val country = readRequiredString(raw, KEY_COUNTRY)
+        val env = readRequiredString(raw, KEY_ENV)
+        val language = readRequiredString(raw, KEY_LANG)
+
+        if (env != "development" &amp;&amp; env != "production") {
+            throw ValidationException(
+                ERROR_INVALID_ENVIRONMENT,
+                "Use environment: development or production",
+            )
+        }
+
+        val normalized = mutableMapOf&lt;String, Any&gt;(
+            KEY_PHONE to phone,
+            KEY_COUNTRY to country,
+            KEY_ENV to env,
+            KEY_LANG to language,
+        )
+        return normalized
+    }
+
+    private fun readRequiredString(raw: Map&lt;*, *&gt;, key: String): String {
+        val value = raw[key]?.toString()?.trim().orEmpty()
+        if (value.isEmpty()) {
+            throw ValidationException(
+                ERROR_INVALID_ARGUMENT,
+                "Required keys: phoneNumber, countryCode, environment, language",
+            )
+        }
+        return value
+    }
+
+    private class ValidationException(val code: String, message: String) : IllegalArgumentException(message)
+
+    @JvmStatic
+    fun destroy() {
+        synchronized(lock) {
+            methodChannel?.setMethodCallHandler(null)
+            methodChannel = null
+            isInitialized = false
+            isFlutterReady = false
+            pendingCalls.clear()
+            latestData.clear()
+        }
+
+        FlutterEngineCache.getInstance().get(ENGINE_ID)?.destroy()
+        FlutterEngineCache.getInstance().remove(ENGINE_ID)
+    }
+}</code></pre>
+            </div>
+
+            <h3>B. Host Activity Usage</h3>
             <div class="code-wrap">
                 <div class="code-header">
                     <div class="code-dots"><span></span><span></span><span></span><span
                             class="filename">MainActivity.kt</span></div>
                     <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
-                <pre><code class="language-kotlin">import io.flutter.embedding.android.FlutterActivity
+                <pre><code class="language-kotlin">class MainActivity : AppCompatActivity() {
 
-class MainActivity : ComponentActivity() {
-    private var flutterEngineShoppingGate: FlutterEngine? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            Button(onClick = {
-                // Launch SDK with the user's mobile number
-                FlutterEngineCache.getInstance().remove("ShoppingGateModule")
-                flutterEngineShoppingGate?.destroy()
-                flutterEngineShoppingGate = FlutterEngine(requireActivity())
-                flutterEngineShoppingGate?.let { engine ->
-                GeneratedPluginRegistrant.registerWith(engine)
+        setContentView(R.layout.activity_main)
 
-                MethodChannel(
-                    engine.dartExecutor.binaryMessenger,
-                    "shoppingate_sdk/channel"
-                )
-                    .setMethodCallHandler { call, result ->
-                        if (call.method == "getInitialData") {
-                            // Provide your data here
-                            val data = mapOf(
-                                "mobile" to "555555555",
-                                "environment" to "development",
-                                "language" to "en"
-                            )
-                            result.success(data)
-                        } else {
-                            result.notImplemented()
-                        }
-                    }
+        SgTravelNative.initialize(
+            request = SgTravelNative.SgTravelRequest(
+                phoneNumber = "XXXXXXXXX",
+                countryCode = "+XXX",
+                environment = "development", // or production
+                language = "en",
+            ),
+        )
 
-                engine.dartExecutor.executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault())
-                FlutterEngineCache.getInstance().put("ShoppingGateModule", engine)
-                startActivity(
-                    FlutterActivity
-                        .withCachedEngine("ShoppingGateModule")
-                        // opaque prevents seeing the background during transition
-                        .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.opaque)
-                        .build(requireActivity()))
-                }
-            }) {
-                Text("Launch ShoppingGate")
-            }
+        findViewById&lt;Button&gt;(R.id.openBooking).setOnClickListener {
+            SgTravelNative.openBooking(context = this)
         }
+
+        findViewById&lt;Button&gt;(R.id.openOrder).setOnClickListener {
+            SgTravelNative.openOrder(context = this)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SgTravelNative.destroy()
     }
 }</code></pre>
             </div>
@@ -744,11 +1013,10 @@ class MainActivity : ComponentActivity() {
             <div class="callout" style="background: rgba(37, 99, 235, 0.05); border-color: var(--primary);">
                 <i data-lucide="help-circle" size="20" style="color: var(--primary)"></i>
                 <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
-                    <li><strong>Blank Map:</strong> Check if the Google Maps API Key is enabled and restricted
-                        correctly.</li>
-                    <li><strong>AAR Rebuild:</strong> Flutter AAR changes require a project <strong>Clean and
-                            Rebuild</strong> to take effect.</li>
-                    <li><strong>Auth:</strong> Ensure the phone number starts without the country code (+).</li>
+                    <li><strong>Initialize First:</strong> Call initialize before openBooking/openOrder.</li>
+                    <li><strong>Environment Validation:</strong> Use only development or production.</li>
+                    <li><strong>No Direct MethodChannel:</strong> Keep partner app on SgTravelNative facade API only.</li>
+                    <li><strong>Maps Issues:</strong> Ensure API key is enabled for Maps SDK and restricted with package/SHA.</li>
                 </ul>
             </div>
         </section>
