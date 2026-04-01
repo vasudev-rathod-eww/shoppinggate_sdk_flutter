@@ -493,7 +493,8 @@
                 <div class="download-card">
                     <div>
                         <div style="margin-bottom: 1rem;"><i data-lucide="box" style="color: var(--primary)"></i></div>
-                        <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Core Flutter SDK</strong>
+                        <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Core Flutter
+                            SDK</strong>
                         <p style="font-size: 0.85rem; color: var(--text-muted);">Compiled AAR artifacts, engine
                             binaries, and required assets.</p>
                     </div>
@@ -512,8 +513,8 @@
                         <p style="font-size: 0.85rem; color: var(--text-muted);">Android Studio starter project with
                             implementation.</p>
                     </div>
-                    <a href="https://drive.google.com/file/d/1Ri-TBNikOYPzagL0o_3YsLsDbvQR4QnF/view"
-                        target="_blank" class="download-btn secondary">
+                    <a href="https://drive.google.com/file/d/1Ri-TBNikOYPzagL0o_3YsLsDbvQR4QnF/view" target="_blank"
+                        class="download-btn secondary">
                         <i data-lucide="external-link" size="18"></i> View Samples
                     </a>
                 </div>
@@ -534,7 +535,8 @@
                 </li>
                 <li style="display: flex; align-items: center; gap: 10px;">
                     <i data-lucide="check-circle-2" size="18" style="color: #10b981;"></i>
-                    <span><strong>Min SDK:</strong> API 24, <strong>Target SDK:</strong> 35, <strong>Compile SDK:</strong> 36</span>
+                    <span><strong>Min SDK:</strong> API 24, <strong>Target SDK:</strong> 35, <strong>Compile
+                            SDK:</strong> 36</span>
                 </li>
             </ul>
         </section>
@@ -543,9 +545,11 @@
             <h2>2. API & Required Parameters</h2>
             <p>To initialize the SDK, you must provide the following required payload values:</p>
             <div class="file-tree">
-                <span style="color: var(--primary)">●</span> <strong>phoneNumber:</strong> User mobile number (without +).<br>
+                <span style="color: var(--primary)">●</span> <strong>phoneNumber:</strong> User mobile number (without
+                +).<br>
                 <span style="color: var(--primary)">●</span> <strong>countryCode:</strong> Example: +91, +966.<br>
-                <span style="color: var(--primary)">●</span> <strong>environment:</strong> development or production.<br>
+                <span style="color: var(--primary)">●</span> <strong>environment:</strong> development or
+                production.<br>
                 <span style="color: var(--primary)">●</span> <strong>language:</strong> en or ar.<br>
             </div>
 
@@ -673,9 +677,9 @@ dependencies {
                 wiring directly in partner app.</p>
             <div class="callout" style="background: rgba(16, 185, 129, 0.08); border-color: #10b981;">
                 <i data-lucide="info" size="20" style="color: #10b981"></i>
-                <p style="margin: 0;"><strong>Testing Note:</strong> <br/>
-                    Use below Phone number and country code for testing<br/>
-                    <strong>phoneNumber: 554433223</strong><br/>
+                <p style="margin: 0;"><strong>Testing Note:</strong> <br />
+                    Use below Phone number and country code for testing<br />
+                    <strong>phoneNumber: 554433223</strong><br />
                     <strong>countryCode: +966</strong>
                 </p>
             </div>
@@ -693,24 +697,30 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import io.flutter.FlutterInjector
-import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.lang.ref.WeakReference
 
 object SgTravelNative {
     const val CHANNEL_NAME: String = "shoppingate_travel_sdk/channel"
     private const val ENGINE_ID: String = "sg_travel_sdk_engine"
 
+    // Native-to-Flutter methods.
     const val METHOD_INITIALIZE: String = "initialize"
     const val METHOD_OPEN_BOOKING_FLOW: String = "openBookingFlow"
     const val METHOD_OPEN_ORDER_FLOW: String = "openOrderFlow"
 
+    // Flutter-to-native methods.
     const val METHOD_HOST_READY: String = "hostReady"
     const val METHOD_SET_USER_DATA: String = "setUserData"
     const val METHOD_CLOSE_SDK: String = "closeSDK"
+    const val METHOD_CONTINUE_TO_PAYMENT: String = "continueToPayment"
+
+    // Native-to-Flutter payment method.
+    private const val METHOD_INVOKE_PAYMENT: String = "invokePaymentInitiation"
 
     private const val ERROR_MISSING_INITIAL_DATA = "MISSING_INITIAL_DATA"
     private const val ERROR_INVALID_ARGUMENT = "INVALID_ARGUMENT"
@@ -722,11 +732,19 @@ object SgTravelNative {
     private const val KEY_LANG = "language"
 
     private val lock = Any()
-    private var latestData: MutableMap&lt;String, Any&gt; = mutableMapOf()
+    private var latestData: MutableMap<String, Any> = mutableMapOf()
     private var isInitialized: Boolean = false
     private var isFlutterReady: Boolean = false
+    private var shouldDestroyEngineOnHostDestroy: Boolean = false
     private var methodChannel: MethodChannel? = null
-    private val pendingCalls: MutableList&lt;ChannelCall&gt; = mutableListOf()
+    private val pendingCalls: MutableList<ChannelCall> = mutableListOf()
+    private var hostActivityRef: WeakReference<Activity>? = null
+
+    private data class PaymentPayload(
+        val amount: Double,
+        val orderId: String?,
+        val requestPaymentType: String?,
+    )
 
     private data class ChannelCall(
         val method: String,
@@ -758,7 +776,10 @@ object SgTravelNative {
     @JvmStatic
     fun openBooking(context: Context) {
         ensureInitialized()
-        ensureEngineStarted(context)
+        val createdNewEngine = ensureEngineStarted(context)
+        if (createdNewEngine) {
+            dispatchInitialize()
+        }
         launchHost(context)
         dispatchOrQueue(method = METHOD_OPEN_BOOKING_FLOW, arguments = null)
     }
@@ -766,9 +787,32 @@ object SgTravelNative {
     @JvmStatic
     fun openOrder(context: Context) {
         ensureInitialized()
-        ensureEngineStarted(context)
+        val createdNewEngine = ensureEngineStarted(context)
+        if (createdNewEngine) {
+            dispatchInitialize()
+        }
         launchHost(context)
         dispatchOrQueue(method = METHOD_OPEN_ORDER_FLOW, arguments = null)
+    }
+
+    @JvmStatic
+    fun setHostActivity(activity: Activity) {
+        synchronized(lock) { hostActivityRef = WeakReference(activity) }
+    }
+
+    @JvmStatic
+    fun clearHostActivity() {
+        synchronized(lock) { hostActivityRef = null }
+    }
+
+    @JvmStatic
+    fun invokePaymentInitiation(paymentResult: String) {
+        val (channel, ready) = synchronized(lock) {
+            Pair(methodChannel, isFlutterReady)
+        }
+        if (channel != null && ready) {
+            channel.invokeMethod(METHOD_INVOKE_PAYMENT, paymentResult)
+        }
     }
 
     @JvmStatic
@@ -784,7 +828,7 @@ object SgTravelNative {
     }
 
     private fun launchHost(context: Context) {
-        val intent = FlutterActivity
+        val intent = SgFlutterActivity
             .withCachedEngine(ENGINE_ID)
             .destroyEngineWithActivity(false)
             .build(context)
@@ -796,9 +840,9 @@ object SgTravelNative {
         context.startActivity(intent)
     }
 
-    private fun ensureEngineStarted(context: Context) {
+    private fun ensureEngineStarted(context: Context): Boolean {
         if (FlutterEngineCache.getInstance().get(ENGINE_ID) != null) {
-            return
+            return false
         }
 
         val appContext = context.applicationContext
@@ -816,6 +860,24 @@ object SgTravelNative {
         )
         engine.dartExecutor.executeDartEntrypoint(entrypoint)
         FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
+        return true
+    }
+
+    private fun dispatchInitialize() {
+        val payload = synchronized(lock) {
+            if (!isInitialized || latestData.isEmpty()) {
+                null
+            } else {
+                HashMap(latestData)
+            }
+        }
+
+        if (payload != null) {
+            dispatchOrQueue(
+                method = METHOD_INITIALIZE,
+                arguments = payload,
+            )
+        }
     }
 
     private fun registerPluginsSafely(engine: FlutterEngine) {
@@ -833,7 +895,7 @@ object SgTravelNative {
 
     private fun handleMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            METHOD_HOST_READY -&gt; {
+            METHOD_HOST_READY -> {
                 synchronized(lock) {
                     isFlutterReady = true
                 }
@@ -841,8 +903,8 @@ object SgTravelNative {
                 flushPendingCallsIfReady()
             }
 
-            METHOD_SET_USER_DATA -&gt; {
-                val incoming = call.arguments as? Map&lt;*, *&gt;
+            METHOD_SET_USER_DATA -> {
+                val incoming = call.arguments as? Map<*, *>
                 if (incoming == null) {
                     result.error(ERROR_INVALID_ARGUMENT, "Expected map payload", null)
                     return
@@ -859,12 +921,38 @@ object SgTravelNative {
                 }
             }
 
-            METHOD_CLOSE_SDK -&gt; {
+            METHOD_CLOSE_SDK -> {
                 result.success(null)
-                System.exit(0)
+                val host = synchronized(lock) {
+                    shouldDestroyEngineOnHostDestroy = true
+                    hostActivityRef?.get()
+                }
+
+                if (host != null) {
+                    host.runOnUiThread { host.finish() }
+                } else {
+                    // No active host activity, so reset immediately.
+                    resetEnginePreservingInitialization()
+                }
             }
 
-            else -&gt; result.notImplemented()
+            METHOD_CONTINUE_TO_PAYMENT -> {
+                val payload = parsePaymentPayload(call.arguments)
+                result.success(null)
+                val host = synchronized(lock) { hostActivityRef?.get() }
+                host?.runOnUiThread {
+                    host.startActivity(
+                        PaymentActivity.newIntent(
+                            context = host,
+                            amount = payload.amount,
+                            orderId = payload.orderId,
+                            requestPaymentType = payload.requestPaymentType,
+                        ),
+                    )
+                }
+            }
+
+            else -> result.notImplemented()
         }
     }
 
@@ -881,6 +969,23 @@ object SgTravelNative {
         activeChannel?.invokeMethod(method, arguments)
     }
 
+    private fun parsePaymentPayload(arguments: Any?): PaymentPayload {
+        val mapPayload = arguments as? Map<*, *>
+        if (mapPayload != null) {
+            val amount = (mapPayload["total_amount"] as? Number)?.toDouble() ?: 0.0
+            val orderId = mapPayload["order_id"]?.toString()
+            val requestPaymentType = mapPayload["request_payment_type"]?.toString()
+            return PaymentPayload(
+                amount = amount,
+                orderId = orderId,
+                requestPaymentType = requestPaymentType,
+            )
+        }
+
+        val amount = (arguments as? Number)?.toDouble() ?: 0.0
+        return PaymentPayload(amount = amount, orderId = null, requestPaymentType = null)
+    }
+
     private fun flushPendingCallsIfReady() {
         val (channel, calls) = synchronized(lock) {
             if (methodChannel == null || !isFlutterReady || pendingCalls.isEmpty()) {
@@ -892,7 +997,7 @@ object SgTravelNative {
             Pair(methodChannel!!, snapshot)
         }
 
-        calls.forEach { call -&gt;
+        calls.forEach { call ->
             channel.invokeMethod(call.method, call.arguments)
         }
     }
@@ -907,7 +1012,7 @@ object SgTravelNative {
         }
     }
 
-    private fun normalizeRequest(request: SgTravelRequest): MutableMap&lt;String, Any&gt; {
+    private fun normalizeRequest(request: SgTravelRequest): MutableMap<String, Any> {
         val raw = mapOf(
             KEY_PHONE to request.phoneNumber,
             KEY_COUNTRY to request.countryCode,
@@ -917,20 +1022,20 @@ object SgTravelNative {
         return normalizePayload(raw)
     }
 
-    private fun normalizePayload(raw: Map&lt;*, *&gt;): MutableMap&lt;String, Any&gt; {
+    private fun normalizePayload(raw: Map<*, *>): MutableMap<String, Any> {
         val phone = readRequiredString(raw, KEY_PHONE)
         val country = readRequiredString(raw, KEY_COUNTRY)
         val env = readRequiredString(raw, KEY_ENV)
         val language = readRequiredString(raw, KEY_LANG)
 
-        if (env != "development" &amp;&amp; env != "production") {
+        if (env != "development" && env != "production") {
             throw ValidationException(
                 ERROR_INVALID_ENVIRONMENT,
                 "Use environment: development or production",
             )
         }
 
-        val normalized = mutableMapOf&lt;String, Any&gt;(
+        val normalized = mutableMapOf<String, Any>(
             KEY_PHONE to phone,
             KEY_COUNTRY to country,
             KEY_ENV to env,
@@ -939,7 +1044,7 @@ object SgTravelNative {
         return normalized
     }
 
-    private fun readRequiredString(raw: Map&lt;*, *&gt;, key: String): String {
+    private fun readRequiredString(raw: Map<*, *>, key: String): String {
         val value = raw[key]?.toString()?.trim().orEmpty()
         if (value.isEmpty()) {
             throw ValidationException(
@@ -953,14 +1058,48 @@ object SgTravelNative {
     private class ValidationException(val code: String, message: String) : IllegalArgumentException(message)
 
     @JvmStatic
+    fun onHostActivityDestroyed(activity: Activity) {
+        val shouldReset = synchronized(lock) {
+            val host = hostActivityRef?.get()
+            if (host == activity) {
+                hostActivityRef = null
+            }
+
+            val pending = shouldDestroyEngineOnHostDestroy
+            shouldDestroyEngineOnHostDestroy = false
+            pending
+        }
+
+        if (shouldReset) {
+            resetEnginePreservingInitialization()
+        }
+    }
+
+    private fun resetEnginePreservingInitialization() {
+        synchronized(lock) {
+            methodChannel?.setMethodCallHandler(null)
+            methodChannel = null
+            isFlutterReady = false
+            shouldDestroyEngineOnHostDestroy = false
+            pendingCalls.clear()
+            hostActivityRef = null
+        }
+
+        FlutterEngineCache.getInstance().get(ENGINE_ID)?.destroy()
+        FlutterEngineCache.getInstance().remove(ENGINE_ID)
+    }
+
+    @JvmStatic
     fun destroy() {
         synchronized(lock) {
             methodChannel?.setMethodCallHandler(null)
             methodChannel = null
             isInitialized = false
             isFlutterReady = false
+            shouldDestroyEngineOnHostDestroy = false
             pendingCalls.clear()
             latestData.clear()
+            hostActivityRef = null
         }
 
         FlutterEngineCache.getInstance().get(ENGINE_ID)?.destroy()
@@ -969,7 +1108,45 @@ object SgTravelNative {
 }</code></pre>
             </div>
 
-            <h3>B. Host Activity Usage</h3>
+            <h3>B. Create Flutter Activity</h3>
+            <div class="code-wrap">
+                <div class="code-header">
+                    <div class="code-dots"><span></span><span></span><span></span><span
+                            class="filename">SgFlutterActivity.kt</span></div>
+                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                </div>
+                <pre><code class="language-kotlin">package com.sg.travelsdkdemo
+
+import io.flutter.embedding.android.FlutterActivity
+
+/**
+ * A thin [FlutterActivity] subclass that keeps [SgTravelNative] aware of the
+ * currently visible host activity.
+ *
+ * This allows [SgTravelNative] to:
+ *  - Properly call [finish] when the SDK requests `closeSDK`.
+ *  - Start the native [PaymentActivity] when the SDK requests `continueToPayment`.
+ */
+class SgFlutterActivity : FlutterActivity() {
+
+    override fun onResume() {
+        super.onResume()
+        SgTravelNative.setHostActivity(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SgTravelNative.onHostActivityDestroyed(this)
+    }
+
+    companion object {
+        fun withCachedEngine(engineId: String): CachedEngineIntentBuilder =
+            CachedEngineIntentBuilder(SgFlutterActivity::class.java, engineId)
+    }
+}</code></pre>
+            </div>
+
+            <h3>C. Host Activity Usage</h3>
             <div class="code-wrap">
                 <div class="code-header">
                     <div class="code-dots"><span></span><span></span><span></span><span
@@ -1006,6 +1183,155 @@ object SgTravelNative {
     }
 }</code></pre>
             </div>
+
+            <h3>D. Payment Screen UI</h3>
+            <div class="code-wrap">
+                <div class="code-header">
+                    <div class="code-dots"><span></span><span></span><span></span><span
+                            class="filename">activity_payment.xml</span></div>
+                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                </div>
+                <pre><code class="language-xml">&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:fitsSystemWindows="true"&gt;
+
+    &lt;androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="20dp"&gt;
+
+        &lt;ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_revert"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" /&gt;
+
+        &lt;TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Payment Method"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="@id/btnClose"
+            app:layout_constraintBottom_toBottomOf="@id/btnClose"
+            app:layout_constraintStart_toEndOf="@id/btnClose" /&gt;
+
+        &lt;TextView
+            android:id="@+id/tvAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" /&gt;
+
+        &lt;Button
+            android:id="@+id/btnPay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pay Now"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" /&gt;
+
+    &lt;/androidx.constraintlayout.widget.ConstraintLayout&gt;
+&lt;/androidx.constraintlayout.widget.ConstraintLayout&gt;</code></pre>
+            </div>
+
+            <h3>E. Payment Screen Logic</h3>
+            <div class="code-wrap">
+                <div class="code-header">
+                    <div class="code-dots"><span></span><span></span><span></span><span
+                            class="filename">PaymentActivity.kt</span></div>
+                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                </div>
+                <pre><code class="language-kotlin">package com.sg.travelsdkdemo
+
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+
+/**
+ * Native payment screen shown when the Travel SDK invokes `continueToPayment`.
+ *
+ * Displays the booking amount and lets the user initiate payment. On confirming,
+ * it calls [SgTravelNative.invokePaymentInitiation] to signal back to the SDK.
+ */
+class PaymentActivity : AppCompatActivity() {
+
+    private var isPaymentInitiated = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_payment)
+
+        val amount = intent.getDoubleExtra(EXTRA_AMOUNT, 0.0)
+        val orderId = intent.getStringExtra(EXTRA_ORDER_ID)
+
+        val tvAmount = findViewById(R.id.tvAmount)
+        val btnPay = findViewById(R.id.btnPay)
+        val btnClose = findViewById(R.id.btnClose)
+
+        tvAmount.text = getString(R.string.payment_amount_label, amount)
+
+        btnPay.setOnClickListener {
+            if (!isPaymentInitiated) {
+                isPaymentInitiated = true
+                btnPay.isEnabled = false
+                btnPay.text = getString(R.string.payment_initiated_label)
+                val transactionId = buildTransactionId(orderId)
+                SgTravelNative.invokePaymentInitiation(transactionId)
+                // Automatically close the payment screen after payment initiation
+                btnClose.postDelayed({ finish() }, 300)
+            }
+        }
+
+        btnClose.setOnClickListener {
+            finish()
+        }
+    }
+
+    companion object {
+        private const val EXTRA_AMOUNT = "extra_amount"
+        private const val EXTRA_ORDER_ID = "extra_order_id"
+        private const val EXTRA_REQUEST_PAYMENT_TYPE = "extra_request_payment_type"
+
+        fun newIntent(
+            context: Context,
+            amount: Double,
+            orderId: String?,
+            requestPaymentType: String?,
+        ): Intent =
+            Intent(context, PaymentActivity::class.java)
+                .putExtra(EXTRA_AMOUNT, amount)
+                .putExtra(EXTRA_ORDER_ID, orderId)
+                .putExtra(EXTRA_REQUEST_PAYMENT_TYPE, requestPaymentType)
+
+        private fun buildTransactionId(orderId: String?): String {
+            val timestamp = System.currentTimeMillis()
+            return if (!orderId.isNullOrBlank()) {
+                "TXN_${orderId}_$timestamp"
+            } else {
+                "TXN_$timestamp"
+            }
+        }
+    }
+}</code></pre>
+            </div>
         </section>
 
         <section id="troubleshooting">
@@ -1015,8 +1341,10 @@ object SgTravelNative {
                 <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
                     <li><strong>Initialize First:</strong> Call initialize before openBooking/openOrder.</li>
                     <li><strong>Environment Validation:</strong> Use only development or production.</li>
-                    <li><strong>No Direct MethodChannel:</strong> Keep partner app on SgTravelNative facade API only.</li>
-                    <li><strong>Maps Issues:</strong> Ensure API key is enabled for Maps SDK and restricted with package/SHA.</li>
+                    <li><strong>No Direct MethodChannel:</strong> Keep partner app on SgTravelNative facade API only.
+                    </li>
+                    <li><strong>Maps Issues:</strong> Ensure API key is enabled for Maps SDK and restricted with
+                        package/SHA.</li>
                 </ul>
             </div>
         </section>
