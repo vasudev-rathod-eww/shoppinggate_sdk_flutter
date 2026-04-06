@@ -551,6 +551,8 @@
                 <span style="color: var(--primary)">●</span> <strong>environment:</strong> development or
                 production.<br>
                 <span style="color: var(--primary)">●</span> <strong>language:</strong> en or ar.<br>
+                <span style="color: var(--primary)">●</span> <strong>auth_code:</strong> Generated from the authentication API (expires in 5 minutes).<br>
+                <span style="color: var(--primary)">●</span> <strong>host_id:</strong> Your application identifier (e.g., "barq").<br>
             </div>
 
             <div class="callout">
@@ -677,11 +679,86 @@ dependencies {
                 wiring directly in partner app.</p>
             <div class="callout" style="background: rgba(16, 185, 129, 0.08); border-color: #10b981;">
                 <i data-lucide="info" size="20" style="color: #10b981"></i>
-                <p style="margin: 0;"><strong>Testing Note:</strong> <br />
-                    Use below Phone number and country code for testing<br />
-                    <strong>phoneNumber: 554433223</strong><br />
-                    <strong>countryCode: +966</strong>
+                <p style="margin: 0;"><strong>Testing Credentials:</strong> <br/>
+                    Use the following details for your sandbox environment:<br/>
+                    <br/>
+                    <strong>phoneNumber:</strong> 554433220<br/> 
+                    <strong>countryCode:</strong> +966<br/>
+                    <strong>auth_code:</strong> Generate using the authentication API endpoint below<br/>
+                    <br/>
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">
+                        <strong>Note:</strong> You must call the auth code generation API before initializing the SDK. See Authentication Flow section for details.
+                    </span>
                 </p>
+            </div>
+
+            <div class="callout">
+                <i data-lucide="shield-check" size="20"></i>
+                <div>
+                    <strong>Authentication Flow:</strong>
+                    <p>To enable user login via auth code (without OTP verification), follow the steps below:</p>
+                    <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 0.95rem;">
+                        <li><strong>Step 1: Generate Auth Code</strong><br/>
+                            Call the ShoppingGate API from your backend to generate an auth code. This auth code is required for silent login without OTP verification.
+                            <div class="code-wrap" style="margin-top: 12px;">
+                                <div class="code-header">
+                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">API Request</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-bash">curl -X 'POST' \
+  'https://microservices.shoppinggate.app/users/users/sdk/generate-auth-code' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "host_id": "barq",
+  "host_secret": "barq-XXXXX",
+  "phone_number": "554433221",
+  "phone_code": "+966",
+  "device_id": "string"
+}'</code></pre>
+                            </div>
+                            <div class="code-wrap" style="margin-top: 12px;">
+                                <div class="code-header">
+                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">API Response</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-json">{
+  "status": true,
+  "message": "Auth code generated successfully",
+  "data": {
+    "auth_code": "5bd9f0fb-0c7a-4250-8b44-0b35e5a1a129",
+    "expires_in": 300
+  }
+}</code></pre>
+                            </div>
+                        </li>
+                        <li style="margin-top: 16px;"><strong>Step 2: Pass Auth Code to SDK</strong><br/>
+                            Once you receive the <code>auth_code</code> from the API response, pass it to the SDK during initialization along with your <code>host_id</code>. The SDK will perform a silent login without requiring OTP verification.
+                            <div class="code-wrap" style="margin-top: 12px;">
+                                <div class="code-header">
+                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin Example</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-kotlin">SgTravelNative.initialize(
+    request = SgTravelNative.SgTravelRequest(
+        phoneNumber = "554433220",
+        countryCode = "+966",
+        environment = "development",
+        language = "en",
+        auth_code = "5bd9f0fb-0c7a-4250-8b44-0b35e5a1a129", // From API response
+        host_id = "barq" // Your host identifier
+    )
+)</code></pre>
+                            </div>
+                            <div class="callout" style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 12px; padding: 12px;">
+                                <i data-lucide="info" size="16" style="color: #f59e0b"></i>
+                                <div style="font-size: 0.9rem;">
+                                    <strong>Note:</strong> The auth code expires in 300 seconds (5 minutes). Ensure you initialize the SDK within this timeframe.
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <h3>A. Native Facade Helper</h3>
@@ -730,6 +807,8 @@ object SgTravelNative {
     private const val KEY_COUNTRY = "countryCode"
     private const val KEY_ENV = "environment"
     private const val KEY_LANG = "language"
+    private const val KEY_AUTH_CODE = "auth_code"
+    private const val KEY_HOST_ID = "host_id"
 
     private val lock = Any()
     private var latestData: MutableMap<String, Any> = mutableMapOf()
@@ -756,6 +835,8 @@ object SgTravelNative {
         val countryCode: String,
         val environment: String,
         val language: String,
+        val auth_code: String,
+        val host_id: String,
     )
 
     @JvmStatic
@@ -1018,6 +1099,8 @@ object SgTravelNative {
             KEY_COUNTRY to request.countryCode,
             KEY_ENV to request.environment,
             KEY_LANG to request.language,
+            KEY_AUTH_CODE to request.auth_code,
+            KEY_HOST_ID to request.host_id,
         )
         return normalizePayload(raw)
     }
@@ -1027,6 +1110,8 @@ object SgTravelNative {
         val country = readRequiredString(raw, KEY_COUNTRY)
         val env = readRequiredString(raw, KEY_ENV)
         val language = readRequiredString(raw, KEY_LANG)
+        val authCode = readRequiredString(raw, KEY_AUTH_CODE)
+        val hostId = readRequiredString(raw, KEY_HOST_ID)
 
         if (env != "development" && env != "production") {
             throw ValidationException(
@@ -1040,6 +1125,8 @@ object SgTravelNative {
             KEY_COUNTRY to country,
             KEY_ENV to env,
             KEY_LANG to language,
+            KEY_AUTH_CODE to authCode,
+            KEY_HOST_ID to hostId,
         )
         return normalized
     }
@@ -1049,7 +1136,7 @@ object SgTravelNative {
         if (value.isEmpty()) {
             throw ValidationException(
                 ERROR_INVALID_ARGUMENT,
-                "Required keys: phoneNumber, countryCode, environment, language",
+                "Required keys: phoneNumber, countryCode, environment, language, auth_code, host_id",
             )
         }
         return value
@@ -1161,10 +1248,12 @@ class SgFlutterActivity : FlutterActivity() {
 
         SgTravelNative.initialize(
             request = SgTravelNative.SgTravelRequest(
-                phoneNumber = "XXXXXXXXX",
-                countryCode = "+XXX",
+                phoneNumber = "554433220",
+                countryCode = "+966",
                 environment = "development", // or production
                 language = "en",
+                auth_code = "5bd9f0fb-0c7a-4250-8b44-0b35e5a1a129", // Generated from API
+                host_id = "barq", // Your host identifier
             ),
         )
 
