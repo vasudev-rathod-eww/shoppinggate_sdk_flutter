@@ -551,6 +551,7 @@
                 <span style="color: var(--primary)">●</span> <strong>environment:</strong> development or
                 production.<br>
                 <span style="color: var(--primary)">●</span> <strong>language:</strong> en or ar.<br>
+                <span style="color: var(--primary)">●</span> <strong>authCode:</strong> Generated from the authentication API (expires in 5 minutes).<br>
             </div>
 
             <div class="callout">
@@ -677,11 +678,85 @@ dependencies {
                 wiring directly in partner app.</p>
             <div class="callout" style="background: rgba(16, 185, 129, 0.08); border-color: #10b981;">
                 <i data-lucide="info" size="20" style="color: #10b981"></i>
-                <p style="margin: 0;"><strong>Testing Note:</strong> <br />
-                    Use below Phone number and country code for testing<br />
-                    <strong>phoneNumber: 554433223</strong><br />
-                    <strong>countryCode: +966</strong>
+                <p style="margin: 0;"><strong>Testing Credentials:</strong> <br/>
+                    Use the following details for your sandbox environment:<br/>
+                    <br/>
+                    <strong>phoneNumber:</strong> 554433220<br/> 
+                    <strong>countryCode:</strong> +966<br/>
+                    <strong>auth_code (API):</strong> Generate using the authentication API endpoint below<br/>
+                    <br/>
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">
+                        <strong>Note:</strong> You must call the auth code generation API before initializing the SDK, and generate a fresh auth code on each Booking/Order tap.
+                    </span>
                 </p>
+            </div>
+
+            <div class="callout">
+                <i data-lucide="shield-check" size="20"></i>
+                <div>
+                    <strong>Authentication Flow:</strong>
+                    <p>To enable user login via auth code (without OTP verification), follow the steps below:</p>
+                    <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 0.95rem;">
+                        <li><strong>Step 1: Generate Auth Code</strong><br/>
+                            Call the ShoppingGate API from your backend to generate an auth code. This auth code is required for silent login without OTP verification and should be regenerated for each Booking/Order flow launch. Use the same <code>device_id</code> source used by SDK login (Android example: <code>Build.ID</code>, fallback to <code>ANDROID_ID</code>).
+                            <div class="code-wrap" style="margin-top: 12px;">
+                                <div class="code-header">
+                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">API Request</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-bash">curl -X 'POST' \
+  'https://microservices.shoppinggate.app/users/users/sdk/generate-auth-code' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "host_id": "barq",
+  "host_secret": "barq-*****",
+  "phone_number": "*********",
+  "phone_code": "****",
+  "device_id": "deviceId"
+}'</code></pre>
+                            </div>
+                            <div class="code-wrap" style="margin-top: 12px;">
+                                <div class="code-header">
+                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">API Response</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-json">{
+  "status": true,
+  "message": "Auth code generated successfully",
+  "data": {
+    "auth_code": "******************",
+    "expires_in": 300
+  }
+}</code></pre>
+                            </div>
+                        </li>
+                        <li style="margin-top: 16px;"><strong>Step 2: Pass Auth Code to SDK</strong><br/>
+                            Once you receive the <code>auth_code</code> from the API response, pass it to the SDK during initialization using the <code>authCode</code> field. The SDK will perform a silent login without requiring OTP verification. (<code>auth_code</code> is API key, <code>authCode</code> is SDK request key)
+                            <div class="code-wrap" style="margin-top: 12px;">
+                                <div class="code-header">
+                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin Example</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                </div>
+                                <pre><code class="language-kotlin">SgTravelNative.initialize(
+    request = SgTravelNative.SgTravelRequest(
+        phoneNumber = "*********",
+        countryCode = "****",
+        environment = "development",
+        language = "en",
+        authCode = "******************" // Fresh code from API response
+    )
+)</code></pre>
+                            </div>
+                            <div class="callout" style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 12px; padding: 12px;">
+                                <i data-lucide="info" size="16" style="color: #f59e0b"></i>
+                                <div style="font-size: 0.9rem;">
+                                    <strong>Note:</strong> The auth code expires in 300 seconds (5 minutes). Always fetch a new auth code before each openBooking/openOrder action.
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <h3>A. Native Facade Helper</h3>
@@ -696,6 +771,9 @@ dependencies {
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import io.flutter.FlutterInjector
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
@@ -707,48 +785,38 @@ import java.lang.ref.WeakReference
 object SgTravelNative {
     const val CHANNEL_NAME: String = "shoppingate_travel_sdk/channel"
     private const val ENGINE_ID: String = "sg_travel_sdk_engine"
+    private const val TAG: String = "SGTravelNative"
 
-    // Native-to-Flutter methods.
     const val METHOD_INITIALIZE: String = "initialize"
     const val METHOD_OPEN_BOOKING_FLOW: String = "openBookingFlow"
     const val METHOD_OPEN_ORDER_FLOW: String = "openOrderFlow"
 
-    // Flutter-to-native methods.
     const val METHOD_HOST_READY: String = "hostReady"
     const val METHOD_SET_USER_DATA: String = "setUserData"
     const val METHOD_CLOSE_SDK: String = "closeSDK"
     const val METHOD_CONTINUE_TO_PAYMENT: String = "continueToPayment"
-
-    // Native-to-Flutter payment method.
     private const val METHOD_INVOKE_PAYMENT: String = "invokePaymentInitiation"
-
-    private const val ERROR_MISSING_INITIAL_DATA = "MISSING_INITIAL_DATA"
-    private const val ERROR_INVALID_ARGUMENT = "INVALID_ARGUMENT"
-    private const val ERROR_INVALID_ENVIRONMENT = "INVALID_ENVIRONMENT"
 
     private const val KEY_PHONE = "phoneNumber"
     private const val KEY_COUNTRY = "countryCode"
     private const val KEY_ENV = "environment"
     private const val KEY_LANG = "language"
+    private const val KEY_AUTH_CODE = "authCode"
 
     private val lock = Any()
-    private var latestData: MutableMap<String, Any> = mutableMapOf()
-    private var isInitialized: Boolean = false
-    private var isFlutterReady: Boolean = false
-    private var shouldDestroyEngineOnHostDestroy: Boolean = false
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var latestData: MutableMap&lt;String, Any&gt; = mutableMapOf()
+    private var isInitialized = false
+    private var isFlutterReady = false
+    private var shouldDestroyEngineOnHostDestroy = false
     private var methodChannel: MethodChannel? = null
-    private val pendingCalls: MutableList<ChannelCall> = mutableListOf()
-    private var hostActivityRef: WeakReference<Activity>? = null
-
-    private data class PaymentPayload(
-        val amount: Double,
-        val orderId: String?,
-        val requestPaymentType: String?,
-    )
+    private val pendingCalls: MutableList&lt;ChannelCall&gt; = mutableListOf()
+    private var hostActivityRef: WeakReference&lt;Activity&gt;? = null
 
     private data class ChannelCall(
         val method: String,
         val arguments: Any?,
+        val callback: MethodChannel.Result? = null,
     )
 
     data class SgTravelRequest(
@@ -756,306 +824,50 @@ object SgTravelNative {
         val countryCode: String,
         val environment: String,
         val language: String,
+        val authCode: String,
     )
 
     @JvmStatic
     fun initialize(request: SgTravelRequest) {
+        initialize(request = request, callback = null)
+    }
+
+    @JvmStatic
+    fun initialize(request: SgTravelRequest, callback: MethodChannel.Result?) {
         val normalized = normalizeRequest(request)
+        val authCode = normalized[KEY_AUTH_CODE]?.toString().orEmpty()
+        Log.d(TAG, "initialize dispatch authCodeLength=${authCode.length}")
 
         synchronized(lock) {
             latestData = normalized
             isInitialized = true
         }
 
-        dispatchOrQueue(
-            method = METHOD_INITIALIZE,
-            arguments = HashMap(normalized),
-        )
+        dispatchOrQueue(METHOD_INITIALIZE, HashMap(normalized), callback)
+    }
+
+    @JvmStatic
+    fun warmUpEngine(context: Context) {
+        ensureEngineStarted(context)
     }
 
     @JvmStatic
     fun openBooking(context: Context) {
         ensureInitialized()
         val createdNewEngine = ensureEngineStarted(context)
-        if (createdNewEngine) {
-            dispatchInitialize()
-        }
+        if (createdNewEngine) dispatchInitialize()
         launchHost(context)
-        dispatchOrQueue(method = METHOD_OPEN_BOOKING_FLOW, arguments = null)
+        dispatchOrQueue(METHOD_OPEN_BOOKING_FLOW, null)
     }
 
     @JvmStatic
     fun openOrder(context: Context) {
         ensureInitialized()
         val createdNewEngine = ensureEngineStarted(context)
-        if (createdNewEngine) {
-            dispatchInitialize()
-        }
+        if (createdNewEngine) dispatchInitialize()
         launchHost(context)
-        dispatchOrQueue(method = METHOD_OPEN_ORDER_FLOW, arguments = null)
+        dispatchOrQueue(METHOD_OPEN_ORDER_FLOW, null)
     }
-
-    @JvmStatic
-    fun setHostActivity(activity: Activity) {
-        synchronized(lock) { hostActivityRef = WeakReference(activity) }
-    }
-
-    @JvmStatic
-    fun clearHostActivity() {
-        synchronized(lock) { hostActivityRef = null }
-    }
-
-    @JvmStatic
-    fun invokePaymentInitiation(paymentResult: String) {
-        val (channel, ready) = synchronized(lock) {
-            Pair(methodChannel, isFlutterReady)
-        }
-        if (channel != null && ready) {
-            channel.invokeMethod(METHOD_INVOKE_PAYMENT, paymentResult)
-        }
-    }
-
-    @JvmStatic
-    fun attachChannel(engine: FlutterEngine) {
-        val channel = MethodChannel(engine.dartExecutor.binaryMessenger, CHANNEL_NAME)
-        synchronized(lock) {
-            methodChannel = channel
-            isFlutterReady = false
-        }
-
-        channel.setMethodCallHandler(::handleMethodCall)
-        flushPendingCallsIfReady()
-    }
-
-    private fun launchHost(context: Context) {
-        val intent = SgFlutterActivity
-            .withCachedEngine(ENGINE_ID)
-            .destroyEngineWithActivity(false)
-            .build(context)
-
-        if (context !is Activity) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-
-        context.startActivity(intent)
-    }
-
-    private fun ensureEngineStarted(context: Context): Boolean {
-        if (FlutterEngineCache.getInstance().get(ENGINE_ID) != null) {
-            return false
-        }
-
-        val appContext = context.applicationContext
-        val loader = FlutterInjector.instance().flutterLoader()
-        loader.startInitialization(appContext)
-        loader.ensureInitializationComplete(appContext, emptyArray())
-
-        val engine = FlutterEngine(appContext)
-        registerPluginsSafely(engine)
-        attachChannel(engine)
-
-        val entrypoint = DartExecutor.DartEntrypoint(
-            loader.findAppBundlePath(),
-            "travelSdkHostEntryPoint",
-        )
-        engine.dartExecutor.executeDartEntrypoint(entrypoint)
-        FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
-        return true
-    }
-
-    private fun dispatchInitialize() {
-        val payload = synchronized(lock) {
-            if (!isInitialized || latestData.isEmpty()) {
-                null
-            } else {
-                HashMap(latestData)
-            }
-        }
-
-        if (payload != null) {
-            dispatchOrQueue(
-                method = METHOD_INITIALIZE,
-                arguments = payload,
-            )
-        }
-    }
-
-    private fun registerPluginsSafely(engine: FlutterEngine) {
-        try {
-            val generatedPluginRegistrant = Class.forName("io.flutter.plugins.GeneratedPluginRegistrant")
-            val registrationMethod = generatedPluginRegistrant.getDeclaredMethod(
-                "registerWith",
-                FlutterEngine::class.java,
-            )
-            registrationMethod.invoke(null, engine)
-        } catch (_: Throwable) {
-            // Plugin auto-registration fallback varies by embedding configuration.
-        }
-    }
-
-    private fun handleMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        when (call.method) {
-            METHOD_HOST_READY -> {
-                synchronized(lock) {
-                    isFlutterReady = true
-                }
-                result.success(null)
-                flushPendingCallsIfReady()
-            }
-
-            METHOD_SET_USER_DATA -> {
-                val incoming = call.arguments as? Map<*, *>
-                if (incoming == null) {
-                    result.error(ERROR_INVALID_ARGUMENT, "Expected map payload", null)
-                    return
-                }
-
-                try {
-                    val normalized = normalizePayload(incoming)
-                    synchronized(lock) {
-                        latestData = normalized
-                    }
-                    result.success(null)
-                } catch (e: ValidationException) {
-                    result.error(e.code, e.message, null)
-                }
-            }
-
-            METHOD_CLOSE_SDK -> {
-                result.success(null)
-                val host = synchronized(lock) {
-                    shouldDestroyEngineOnHostDestroy = true
-                    hostActivityRef?.get()
-                }
-
-                if (host != null) {
-                    host.runOnUiThread { host.finish() }
-                } else {
-                    // No active host activity, so reset immediately.
-                    resetEnginePreservingInitialization()
-                }
-            }
-
-            METHOD_CONTINUE_TO_PAYMENT -> {
-                val payload = parsePaymentPayload(call.arguments)
-                result.success(null)
-                val host = synchronized(lock) { hostActivityRef?.get() }
-                host?.runOnUiThread {
-                    host.startActivity(
-                        PaymentActivity.newIntent(
-                            context = host,
-                            amount = payload.amount,
-                            orderId = payload.orderId,
-                            requestPaymentType = payload.requestPaymentType,
-                        ),
-                    )
-                }
-            }
-
-            else -> result.notImplemented()
-        }
-    }
-
-    private fun dispatchOrQueue(method: String, arguments: Any?) {
-        val activeChannel = synchronized(lock) {
-            if (methodChannel == null || !isFlutterReady) {
-                pendingCalls.add(ChannelCall(method = method, arguments = arguments))
-                null
-            } else {
-                methodChannel
-            }
-        }
-
-        activeChannel?.invokeMethod(method, arguments)
-    }
-
-    private fun parsePaymentPayload(arguments: Any?): PaymentPayload {
-        val mapPayload = arguments as? Map<*, *>
-        if (mapPayload != null) {
-            val amount = (mapPayload["total_amount"] as? Number)?.toDouble() ?: 0.0
-            val orderId = mapPayload["order_id"]?.toString()
-            val requestPaymentType = mapPayload["request_payment_type"]?.toString()
-            return PaymentPayload(
-                amount = amount,
-                orderId = orderId,
-                requestPaymentType = requestPaymentType,
-            )
-        }
-
-        val amount = (arguments as? Number)?.toDouble() ?: 0.0
-        return PaymentPayload(amount = amount, orderId = null, requestPaymentType = null)
-    }
-
-    private fun flushPendingCallsIfReady() {
-        val (channel, calls) = synchronized(lock) {
-            if (methodChannel == null || !isFlutterReady || pendingCalls.isEmpty()) {
-                return
-            }
-
-            val snapshot = pendingCalls.toList()
-            pendingCalls.clear()
-            Pair(methodChannel!!, snapshot)
-        }
-
-        calls.forEach { call ->
-            channel.invokeMethod(call.method, call.arguments)
-        }
-    }
-
-    private fun ensureInitialized() {
-        val initialized = synchronized(lock) { isInitialized }
-        if (!initialized) {
-            throw ValidationException(
-                ERROR_MISSING_INITIAL_DATA,
-                "Initialize request not found. Call SgTravelNative.initialize first.",
-            )
-        }
-    }
-
-    private fun normalizeRequest(request: SgTravelRequest): MutableMap<String, Any> {
-        val raw = mapOf(
-            KEY_PHONE to request.phoneNumber,
-            KEY_COUNTRY to request.countryCode,
-            KEY_ENV to request.environment,
-            KEY_LANG to request.language,
-        )
-        return normalizePayload(raw)
-    }
-
-    private fun normalizePayload(raw: Map<*, *>): MutableMap<String, Any> {
-        val phone = readRequiredString(raw, KEY_PHONE)
-        val country = readRequiredString(raw, KEY_COUNTRY)
-        val env = readRequiredString(raw, KEY_ENV)
-        val language = readRequiredString(raw, KEY_LANG)
-
-        if (env != "development" && env != "production") {
-            throw ValidationException(
-                ERROR_INVALID_ENVIRONMENT,
-                "Use environment: development or production",
-            )
-        }
-
-        val normalized = mutableMapOf<String, Any>(
-            KEY_PHONE to phone,
-            KEY_COUNTRY to country,
-            KEY_ENV to env,
-            KEY_LANG to language,
-        )
-        return normalized
-    }
-
-    private fun readRequiredString(raw: Map<*, *>, key: String): String {
-        val value = raw[key]?.toString()?.trim().orEmpty()
-        if (value.isEmpty()) {
-            throw ValidationException(
-                ERROR_INVALID_ARGUMENT,
-                "Required keys: phoneNumber, countryCode, environment, language",
-            )
-        }
-        return value
-    }
-
-    private class ValidationException(val code: String, message: String) : IllegalArgumentException(message)
 
     @JvmStatic
     fun onHostActivityDestroyed(activity: Activity) {
@@ -1063,48 +875,66 @@ object SgTravelNative {
             val host = hostActivityRef?.get()
             if (host == activity) {
                 hostActivityRef = null
+                shouldDestroyEngineOnHostDestroy = false
+                return@synchronized true
             }
-
             val pending = shouldDestroyEngineOnHostDestroy
             shouldDestroyEngineOnHostDestroy = false
             pending
         }
 
-        if (shouldReset) {
-            resetEnginePreservingInitialization()
+        if (shouldReset) resetEnginePreservingInitialization()
+    }
+
+    private fun dispatchOrQueue(
+        method: String,
+        arguments: Any?,
+        callback: MethodChannel.Result? = null,
+    ) {
+        val activeChannel = synchronized(lock) {
+            if (methodChannel == null || !isFlutterReady) {
+                pendingCalls.add(ChannelCall(method, arguments, callback))
+                null
+            } else {
+                methodChannel
+            }
+        }
+
+        if (activeChannel != null) {
+            invokeMethodOnMainThread(activeChannel, method, arguments, callback)
         }
     }
 
-    private fun resetEnginePreservingInitialization() {
-        synchronized(lock) {
-            methodChannel?.setMethodCallHandler(null)
-            methodChannel = null
-            isFlutterReady = false
-            shouldDestroyEngineOnHostDestroy = false
-            pendingCalls.clear()
-            hostActivityRef = null
+    private fun invokeMethodOnMainThread(
+        channel: MethodChannel,
+        method: String,
+        arguments: Any?,
+        callback: MethodChannel.Result? = null,
+    ) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            if (callback != null) channel.invokeMethod(method, arguments, callback)
+            else channel.invokeMethod(method, arguments)
+            return
         }
 
-        FlutterEngineCache.getInstance().get(ENGINE_ID)?.destroy()
-        FlutterEngineCache.getInstance().remove(ENGINE_ID)
-    }
-
-    @JvmStatic
-    fun destroy() {
-        synchronized(lock) {
-            methodChannel?.setMethodCallHandler(null)
-            methodChannel = null
-            isInitialized = false
-            isFlutterReady = false
-            shouldDestroyEngineOnHostDestroy = false
-            pendingCalls.clear()
-            latestData.clear()
-            hostActivityRef = null
+        mainHandler.post {
+            if (callback != null) channel.invokeMethod(method, arguments, callback)
+            else channel.invokeMethod(method, arguments)
         }
-
-        FlutterEngineCache.getInstance().get(ENGINE_ID)?.destroy()
-        FlutterEngineCache.getInstance().remove(ENGINE_ID)
     }
+
+    private fun normalizeRequest(request: SgTravelRequest): MutableMap&lt;String, Any&gt; {
+        return mutableMapOf(
+            KEY_PHONE to request.phoneNumber,
+            KEY_COUNTRY to request.countryCode,
+            KEY_ENV to request.environment,
+            KEY_LANG to request.language,
+            KEY_AUTH_CODE to request.authCode,
+        )
+    }
+
+    // ... Keep remaining helper methods same as project source (attachChannel,
+    // ensureEngineStarted, handleMethodCall, parsePaymentPayload, destroy, etc.)
 }</code></pre>
             </div>
 
@@ -1153,28 +983,58 @@ class SgFlutterActivity : FlutterActivity() {
                             class="filename">MainActivity.kt</span></div>
                     <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
-                <pre><code class="language-kotlin">class MainActivity : AppCompatActivity() {
+                <pre><code class="language-kotlin">private enum class SdkFlowType { BOOKING, ORDER }
+
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        SgTravelNative.initialize(
-            request = SgTravelNative.SgTravelRequest(
-                phoneNumber = "XXXXXXXXX",
-                countryCode = "+XXX",
-                environment = "development", // or production
-                language = "en",
-            ),
-        )
-
         findViewById&lt;Button&gt;(R.id.openBooking).setOnClickListener {
-            SgTravelNative.openBooking(context = this)
+            loginAndOpenFlow(SdkFlowType.BOOKING)
         }
 
         findViewById&lt;Button&gt;(R.id.openOrder).setOnClickListener {
-            SgTravelNative.openOrder(context = this)
+            loginAndOpenFlow(SdkFlowType.ORDER)
         }
+    }
+
+    private fun loginAndOpenFlow(flowType: SdkFlowType) {
+        Thread {
+            val authCode = fetchAuthCodeFromApi() // call API every tap
+            runOnUiThread { initializeSdkAndOpen(authCode, flowType) }
+        }.start()
+    }
+
+    private fun initializeSdkAndOpen(authCode: String, flowType: SdkFlowType) {
+        SgTravelNative.warmUpEngine(this)
+
+        SgTravelNative.initialize(
+            request = SgTravelNative.SgTravelRequest(
+                phoneNumber = "554433220",
+                countryCode = "+966",
+                environment = "development",
+                language = "en",
+                authCode = authCode,
+            ),
+            callback = object : MethodChannel.Result {
+                override fun success(result: Any?) {
+                    when (flowType) {
+                        SdkFlowType.BOOKING -> SgTravelNative.openBooking(context = this@MainActivity)
+                        SdkFlowType.ORDER -> SgTravelNative.openOrder(context = this@MainActivity)
+                    }
+                }
+
+                override fun error(code: String, message: String?, details: Any?) {
+                    Toast.makeText(this@MainActivity, "Init error: ${message ?: code}", Toast.LENGTH_LONG).show()
+                }
+
+                override fun notImplemented() {
+                    Toast.makeText(this@MainActivity, "Init error: method not implemented", Toast.LENGTH_LONG).show()
+                }
+            },
+        )
     }
 
     override fun onDestroy() {
