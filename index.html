@@ -552,6 +552,7 @@
                 production.<br>
                 <span style="color: var(--primary)">●</span> <strong>language:</strong> en or ar.<br>
                 <span style="color: var(--primary)">●</span> <strong>authCode:</strong> Generated from the authentication API (expires in 5 minutes).<br>
+                <span style="color: var(--primary)">●</span> <strong>partnerUserId:</strong> Unique identifier for the partner user.<br>
             </div>
 
             <div class="callout">
@@ -688,6 +689,7 @@ dependencies {
                     <span style="font-size: 0.9rem; color: var(--text-muted);">
                         <strong>Note:</strong> You must call the auth code generation API before initializing the SDK, and generate a fresh auth code on each Booking/Order tap.
                     </span>
+                    <strong>partnerUserId:</strong> 2<br/> 
                 </p>
             </div>
 
@@ -713,7 +715,8 @@ dependencies {
   "host_secret": "barq-*****",
   "phone_number": "*********",
   "phone_code": "****",
-  "device_id": "deviceId"
+  "device_id": "deviceId",
+  "partnerUserId": "unique_partner_user_id"
 }'</code></pre>
                             </div>
                             <div class="code-wrap" style="margin-top: 12px;">
@@ -744,7 +747,8 @@ dependencies {
         countryCode = "****",
         environment = "development",
         language = "en",
-        authCode = "******************" // Fresh code from API response
+        authCode = "******************", // Fresh code from API response
+        partnerUserId = "unique_partner_user_id" // Unique identifier for the partner user
     )
 )</code></pre>
                             </div>
@@ -802,6 +806,7 @@ object SgTravelNative {
     private const val KEY_ENV = "environment"
     private const val KEY_LANG = "language"
     private const val KEY_AUTH_CODE = "authCode"
+    private const val KEY_PARTNER_USER_ID = "partnerUserId"
 
     private val lock = Any()
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -825,6 +830,7 @@ object SgTravelNative {
         val environment: String,
         val language: String,
         val authCode: String,
+        val partnerUserId: String,
     )
 
     @JvmStatic
@@ -930,6 +936,7 @@ object SgTravelNative {
             KEY_ENV to request.environment,
             KEY_LANG to request.language,
             KEY_AUTH_CODE to request.authCode,
+            KEY_PARTNER_USER_ID to request.partnerUserId,
         )
     }
 
@@ -1017,6 +1024,7 @@ class MainActivity : AppCompatActivity() {
                 environment = "development",
                 language = "en",
                 authCode = authCode,
+                partnerUserId = "2"
             ),
             callback = object : MethodChannel.Result {
                 override fun success(result: Any?) {
