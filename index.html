@@ -498,7 +498,7 @@
                         <p style="font-size: 0.85rem; color: var(--text-muted);">Compiled AAR artifacts, engine
                             binaries, and required assets.</p>
                     </div>
-                    <a href="https://drive.google.com/file/d/1vre8dLs1wgy1txEGJEQmOhjIMoI7NEvr/view?usp=sharing"
+                    <a href="https://drive.google.com/file/d/1HDaoW_QlzF-xwWeAPgQzVa7LKR3sTBtT/view?usp=sharing"
                         target="_blank" class="download-btn">
                         <i data-lucide="download" size="18"></i> Download Latest SDK
                     </a>
@@ -551,8 +551,10 @@
                 <span style="color: var(--primary)">●</span> <strong>environment:</strong> development or
                 production.<br>
                 <span style="color: var(--primary)">●</span> <strong>language:</strong> en or ar.<br>
-                <span style="color: var(--primary)">●</span> <strong>authCode:</strong> Generated from the authentication API (expires in 5 minutes).<br>
-                <span style="color: var(--primary)">●</span> <strong>partnerUserId:</strong> Unique identifier for the partner user.<br>
+                <span style="color: var(--primary)">●</span> <strong>authCode:</strong> Generated from the
+                authentication API (expires in 5 minutes).<br>
+                <span style="color: var(--primary)">●</span> <strong>partnerUserId:</strong> Unique identifier for the
+                partner user.<br>
             </div>
 
             <div class="callout">
@@ -679,17 +681,18 @@ dependencies {
                 wiring directly in partner app.</p>
             <div class="callout" style="background: rgba(16, 185, 129, 0.08); border-color: #10b981;">
                 <i data-lucide="info" size="20" style="color: #10b981"></i>
-                <p style="margin: 0;"><strong>Testing Credentials:</strong> <br/>
-                    Use the following details for your sandbox environment:<br/>
-                    <br/>
-                    <strong>phoneNumber:</strong> 554433223<br/> 
-                    <strong>countryCode:</strong> +966<br/>
-                    <strong>auth_code (API):</strong> Generate using the authentication API endpoint below<br/>
-                    <br/>
+                <p style="margin: 0;"><strong>Testing Credentials:</strong> <br />
+                    Use the following details for your sandbox environment:<br />
+                    <br />
+                    <strong>phoneNumber:</strong> 554433223<br />
+                    <strong>countryCode:</strong> +966<br />
+                    <strong>auth_code (API):</strong> Generate using the authentication API endpoint below<br />
+                    <br />
                     <span style="font-size: 0.9rem; color: var(--text-muted);">
-                        <strong>Note:</strong> You must call the auth code generation API before initializing the SDK, and generate a fresh auth code on each Booking/Order tap.
+                        <strong>Note:</strong> You must call the auth code generation API before initializing the SDK,
+                        and generate a fresh auth code on each Booking/Order tap.
                     </span>
-                    <strong>partnerUserId:</strong> 2<br/> 
+                    <strong>partnerUserId:</strong> 2<br />
                 </p>
             </div>
 
@@ -699,12 +702,17 @@ dependencies {
                     <strong>Authentication Flow:</strong>
                     <p>To enable user login via auth code (without OTP verification), follow the steps below:</p>
                     <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 0.95rem;">
-                        <li><strong>Step 1: Generate Auth Code</strong><br/>
-                            Call the ShoppingGate API from your backend to generate an auth code. This auth code is required for silent login without OTP verification and should be regenerated for each Booking/Order flow launch. Use the same <code>device_id</code> source used by SDK login (Android example: <code>Build.ID</code>, fallback to <code>ANDROID_ID</code>).
+                        <li><strong>Step 1: Generate Auth Code</strong><br />
+                            Call the ShoppingGate API from your backend to generate an auth code. This auth code is
+                            required for silent login without OTP verification and should be regenerated for each
+                            Booking/Order flow launch. Use the same <code>device_id</code> source used by SDK login
+                            (Android example: <code>Build.ID</code>, fallback to <code>ANDROID_ID</code>).
                             <div class="code-wrap" style="margin-top: 12px;">
                                 <div class="code-header">
-                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">API Request</span></div>
-                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                    <div class="code-dots"><span></span><span></span><span></span><span
+                                            class="filename">API Request</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy"
+                                            size="14"></i> Copy</button>
                                 </div>
                                 <pre><code class="language-bash">curl -X 'POST' \
   'https://microservices.shoppinggate.app/users/users/sdk/generate-auth-code' \
@@ -721,8 +729,10 @@ dependencies {
                             </div>
                             <div class="code-wrap" style="margin-top: 12px;">
                                 <div class="code-header">
-                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">API Response</span></div>
-                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                    <div class="code-dots"><span></span><span></span><span></span><span
+                                            class="filename">API Response</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy"
+                                            size="14"></i> Copy</button>
                                 </div>
                                 <pre><code class="language-json">{
   "status": true,
@@ -734,12 +744,17 @@ dependencies {
 }</code></pre>
                             </div>
                         </li>
-                        <li style="margin-top: 16px;"><strong>Step 2: Pass Auth Code to SDK</strong><br/>
-                            Once you receive the <code>auth_code</code> from the API response, pass it to the SDK during initialization using the <code>authCode</code> field. The SDK will perform a silent login without requiring OTP verification. (<code>auth_code</code> is API key, <code>authCode</code> is SDK request key)
+                        <li style="margin-top: 16px;"><strong>Step 2: Pass Auth Code to SDK</strong><br />
+                            Once you receive the <code>auth_code</code> from the API response, pass it to the SDK during
+                            initialization using the <code>authCode</code> field. The SDK will perform a silent login
+                            without requiring OTP verification. (<code>auth_code</code> is API key,
+                            <code>authCode</code> is SDK request key)
                             <div class="code-wrap" style="margin-top: 12px;">
                                 <div class="code-header">
-                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin Example</span></div>
-                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                    <div class="code-dots"><span></span><span></span><span></span><span
+                                            class="filename">Kotlin Example</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy"
+                                            size="14"></i> Copy</button>
                                 </div>
                                 <pre><code class="language-kotlin">SgTravelNative.initialize(
     request = SgTravelNative.SgTravelRequest(
@@ -752,10 +767,12 @@ dependencies {
     )
 )</code></pre>
                             </div>
-                            <div class="callout" style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 12px; padding: 12px;">
+                            <div class="callout"
+                                style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 12px; padding: 12px;">
                                 <i data-lucide="info" size="16" style="color: #f59e0b"></i>
                                 <div style="font-size: 0.9rem;">
-                                    <strong>Note:</strong> The auth code expires in 300 seconds (5 minutes). Always fetch a new auth code before each openBooking/openOrder action.
+                                    <strong>Note:</strong> The auth code expires in 300 seconds (5 minutes). Always
+                                    fetch a new auth code before each openBooking/openOrder action.
                                 </div>
                             </div>
                         </li>
@@ -764,24 +781,32 @@ dependencies {
             </div>
 
             <h3>A. Theme Configuration <span class="badge">Optional</span></h3>
-            <p>You can customize the SDK's appearance by setting a theme <strong>before</strong> calling <code>initialize</code>. Use the <code>setTheme(config)</code> method with a <code>ThemeConfig</code> data class to pass your brand colors directly from native code.</p>
+            <p>You can customize the SDK's appearance by setting a theme <strong>before</strong> calling
+                <code>initialize</code>. Use the <code>setTheme(config)</code> method with a <code>ThemeConfig</code>
+                data class to pass your brand colors directly from native code.</p>
 
             <div class="file-tree">
-                <span style="color: var(--primary)">●</span> <strong>primaryColor</strong> &nbsp;— Primary brand color used for buttons, highlights, and interactive elements. Hex format e.g. <code>"#FF6B35"</code><br>
-                <span style="color: var(--primary)">●</span> <strong>scaffoldBackground</strong> &nbsp;— Background color of the main scaffold/screen. Hex format e.g. <code>"#F5F5F5"</code><br>
-                <span style="color: var(--primary)">●</span> <strong>secondaryColor</strong> &nbsp;— Secondary color used for accents and secondary UI elements. Hex format e.g. <code>"#1D1C1C33"</code>
+                <span style="color: var(--primary)">●</span> <strong>primaryColor</strong> &nbsp;— Primary brand color
+                used for buttons, highlights, and interactive elements. Hex format e.g. <code>"#FF6B35"</code><br>
+                <span style="color: var(--primary)">●</span> <strong>scaffoldBackground</strong> &nbsp;— Background
+                color of the main scaffold/screen. Hex format e.g. <code>"#F5F5F5"</code><br>
+                <span style="color: var(--primary)">●</span> <strong>secondaryColor</strong> &nbsp;— Secondary color
+                used for accents and secondary UI elements. Hex format e.g. <code>"#1D1C1C33"</code>
             </div>
 
             <div class="callout" style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 2rem;">
                 <i data-lucide="alert-circle" size="20"></i>
                 <div>
-                    <strong>Important:</strong> <code>setTheme</code> must be called <strong>before</strong> <code>initialize</code>. If not called, the SDK will use its default theme. All color values must be in hex string format (e.g. <code>"#RRGGBB"</code> or <code>"#RRGGBBAA"</code>).
+                    <strong>Important:</strong> <code>setTheme</code> must be called <strong>before</strong>
+                    <code>initialize</code>. If not called, the SDK will use its default theme. All color values must be
+                    in hex string format (e.g. <code>"#RRGGBB"</code> or <code>"#RRGGBBAA"</code>).
                 </div>
             </div>
 
             <div class="code-wrap">
                 <div class="code-header">
-                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin Example</span></div>
+                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin
+                            Example</span></div>
                     <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
                 <pre><code class="language-kotlin">// Step 1: Set theme before initializing (optional)
