@@ -763,7 +763,41 @@ dependencies {
                 </div>
             </div>
 
-            <h3>A. Native Facade Helper</h3>
+            <h3>A. Theme Configuration <span class="badge">Optional</span></h3>
+            <p>You can customize the SDK's appearance by setting a theme <strong>before</strong> calling <code>initialize</code>. Use the <code>setTheme(config)</code> method with a <code>ThemeConfig</code> data class to pass your brand colors directly from native code.</p>
+
+            <div class="file-tree">
+                <span style="color: var(--primary)">●</span> <strong>primaryColor</strong> &nbsp;— Primary brand color used for buttons, highlights, and interactive elements. Hex format e.g. <code>"#FF6B35"</code><br>
+                <span style="color: var(--primary)">●</span> <strong>scaffoldBackground</strong> &nbsp;— Background color of the main scaffold/screen. Hex format e.g. <code>"#F5F5F5"</code><br>
+                <span style="color: var(--primary)">●</span> <strong>secondaryColor</strong> &nbsp;— Secondary color used for accents and secondary UI elements. Hex format e.g. <code>"#1D1C1C33"</code>
+            </div>
+
+            <div class="callout" style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 2rem;">
+                <i data-lucide="alert-circle" size="20"></i>
+                <div>
+                    <strong>Important:</strong> <code>setTheme</code> must be called <strong>before</strong> <code>initialize</code>. If not called, the SDK will use its default theme. All color values must be in hex string format (e.g. <code>"#RRGGBB"</code> or <code>"#RRGGBBAA"</code>).
+                </div>
+            </div>
+
+            <div class="code-wrap">
+                <div class="code-header">
+                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin Example</span></div>
+                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                </div>
+                <pre><code class="language-kotlin">// Step 1: Set theme before initializing (optional)
+SgTravelNative.setTheme(
+    SgTravelNative.ThemeConfig(
+        primaryColor = "#090909",
+        scaffoldBackground = "#0B8085",
+        secondaryColor = "#1D1C1C33"
+    )
+)
+
+// Step 2: Initialize as usual
+SgTravelNative.initialize(request = SgTravelNative.SgTravelRequest(...))</code></pre>
+            </div>
+
+            <h3>B. Native Facade Helper</h3>
             <div class="code-wrap">
                 <div class="code-header">
                     <div class="code-dots"><span></span><span></span><span></span><span
@@ -808,6 +842,10 @@ object SgTravelNative {
     private const val KEY_AUTH_CODE = "authCode"
     private const val KEY_PARTNER_USER_ID = "partnerUserId"
 
+    private const val KEY_PRIMARY_COLOR = "primaryColor"
+    private const val KEY_SCAFFOLD_BACKGROUND = "scaffoldBackground"
+    private const val KEY_SECONDARY_COLOR = "secondaryColor"
+
     private val lock = Any()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var latestData: MutableMap&lt;String, Any&gt; = mutableMapOf()
@@ -817,6 +855,7 @@ object SgTravelNative {
     private var methodChannel: MethodChannel? = null
     private val pendingCalls: MutableList&lt;ChannelCall&gt; = mutableListOf()
     private var hostActivityRef: WeakReference&lt;Activity&gt;? = null
+    private var pendingThemeConfig: ThemeConfig? = null
 
     private data class ChannelCall(
         val method: String,
@@ -833,9 +872,22 @@ object SgTravelNative {
         val partnerUserId: String,
     )
 
+    data class ThemeConfig(
+        val primaryColor: String,
+        val scaffoldBackground: String,
+        val secondaryColor: String,
+    )
+
     @JvmStatic
     fun initialize(request: SgTravelRequest) {
         initialize(request = request, callback = null)
+    }
+
+    @JvmStatic
+    fun setTheme(config: ThemeConfig) {
+        synchronized(lock) {
+            pendingThemeConfig = config
+        }
     }
 
     @JvmStatic
@@ -845,6 +897,11 @@ object SgTravelNative {
         Log.d(TAG, "initialize dispatch authCodeLength=${authCode.length}")
 
         synchronized(lock) {
+            pendingThemeConfig?.let { theme -&gt;
+                normalized[KEY_PRIMARY_COLOR] = theme.primaryColor
+                normalized[KEY_SCAFFOLD_BACKGROUND] = theme.scaffoldBackground
+                normalized[KEY_SECONDARY_COLOR] = theme.secondaryColor
+            }
             latestData = normalized
             isInitialized = true
         }
@@ -945,7 +1002,7 @@ object SgTravelNative {
 }</code></pre>
             </div>
 
-            <h3>B. Create Flutter Activity</h3>
+            <h3>C. Create Flutter Activity</h3>
             <div class="code-wrap">
                 <div class="code-header">
                     <div class="code-dots"><span></span><span></span><span></span><span
@@ -983,7 +1040,7 @@ class SgFlutterActivity : FlutterActivity() {
 }</code></pre>
             </div>
 
-            <h3>C. Host Activity Usage</h3>
+            <h3>D. Host Activity Usage</h3>
             <div class="code-wrap">
                 <div class="code-header">
                     <div class="code-dots"><span></span><span></span><span></span><span
@@ -1016,6 +1073,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeSdkAndOpen(authCode: String, flowType: SdkFlowType) {
         SgTravelNative.warmUpEngine(this)
+
+        SgTravelNative.setTheme(
+            SgTravelNative.ThemeConfig(
+                primaryColor = "#090909",
+                scaffoldBackground = "#0B8085",
+                secondaryColor = "#1D1C1C33"
+            )
+        )
 
         SgTravelNative.initialize(
             request = SgTravelNative.SgTravelRequest(
@@ -1052,7 +1117,7 @@ class MainActivity : AppCompatActivity() {
 }</code></pre>
             </div>
 
-            <h3>D. Payment Screen UI</h3>
+            <h3>E. Payment Screen UI</h3>
             <div class="code-wrap">
                 <div class="code-header">
                     <div class="code-dots"><span></span><span></span><span></span><span
@@ -1114,7 +1179,7 @@ class MainActivity : AppCompatActivity() {
 &lt;/androidx.constraintlayout.widget.ConstraintLayout&gt;</code></pre>
             </div>
 
-            <h3>E. Payment Screen Logic</h3>
+            <h3>F. Payment Screen Logic</h3>
             <div class="code-wrap">
                 <div class="code-header">
                     <div class="code-dots"><span></span><span></span><span></span><span
