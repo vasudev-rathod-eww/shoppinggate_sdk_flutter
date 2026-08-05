@@ -151,6 +151,7 @@
         #host-config,
         #manifest,
         #implementation,
+        #session-flow,
         #troubleshooting,
         #downloads {
             scroll-margin-top: 50px;
@@ -160,7 +161,6 @@
             display: flex;
             justify-content: flex-end;
             padding: 1rem 0;
-            /* background: var(--bg-body);  Removed to prevent overlap issues while scrolling */
             margin-bottom: 2rem;
             position: relative;
         }
@@ -248,7 +248,6 @@
             display: flex;
             gap: 6px;
             align-items: center;
-            /* Ensures dots and filename stay aligned */
         }
 
         .code-dots span {
@@ -257,24 +256,18 @@
             border-radius: 50%;
         }
 
-        /* Target each dot individually */
         .code-dots span:nth-child(1) {
             background: #ff5f56;
         }
 
-        /* Red */
         .code-dots span:nth-child(2) {
             background: #ffbd2e;
         }
 
-        /* Yellow */
         .code-dots span:nth-child(3) {
             background: #27c93f;
         }
 
-        /* Green */
-
-        /* Ensure the filename span doesn't get a background color */
         .code-dots span.filename {
             background: transparent;
             width: auto;
@@ -312,21 +305,58 @@
         pre {
             margin: 0 !important;
             padding: 1.25rem !important;
-            /* background: transparent !important; */
         }
 
         code {
             font-family: 'Fira Code', monospace !important;
             font-weight: 500 !important;
-            /* Retina weight */
             font-size: 0.90rem !important;
         }
 
-        /* ADD IT HERE TO OVERRIDE THE THEME */
         .hljs {
             color: #adbac7 !important;
             background: transparent !important;
-            /* This ensures it uses your .code-wrap background */
+        }
+
+        /* --- Table Styling --- */
+        .param-table-wrapper {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            padding: 12px 16px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .code-text {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            font-weight: 500;
         }
 
         /* --- Cards & UI --- */
@@ -456,7 +486,7 @@
         <div class="nav-label">Getting Started</div>
         <ul>
             <li><a href="#prerequisites">1. Prerequisites</a></li>
-            <li><a href="#credentials">2. API & Credentials</a></li>
+            <li><a href="#credentials">2. API & Required Parameters</a></li>
             <li><a href="#repo-setup">3. Repository Setup</a></li>
         </ul>
 
@@ -469,6 +499,7 @@
         <div class="nav-label">Usage</div>
         <ul>
             <li><a href="#implementation">6. Implementation</a></li>
+            <li><a href="#session-flow">6.1 Barq Session Flow</a></li>
             <li><a href="#troubleshooting">7. Troubleshooting</a></li>
         </ul>
     </aside>
@@ -544,15 +575,59 @@
         <section id="credentials">
             <h2>2. API & Required Parameters</h2>
             <p>To initialize the SDK, you must provide the following required payload values:</p>
-            <div class="file-tree">
-                <span style="color: var(--primary)">●</span> <strong>phoneNumber:</strong> User mobile number (without
-                +).<br>
-                <span style="color: var(--primary)">●</span> <strong>countryCode:</strong> Example: +91, +966.<br>
-                <span style="color: var(--primary)">●</span> <strong>environment:</strong> development or
-                production.<br>
-                <span style="color: var(--primary)">●</span> <strong>language:</strong> en or ar.<br>
-                <span style="color: var(--primary)">●</span> <strong>authCode:</strong> Generated from the authentication API (expires in 5 minutes).<br>
-                <span style="color: var(--primary)">●</span> <strong>partnerUserId:</strong> Unique identifier for the partner user.<br>
+
+            <div class="param-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="code-text">phoneNumber</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td>User mobile number (without +)</td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">countryCode</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td>Example: +966, +91</td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">environment</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td>development or production</td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">language</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td>en or ar</td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">authCode</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td>JWT from generate-token API (see Section 6). Still passed as authCode field name.</td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">partnerUserId</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td>Unique partner user identifier</td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">sessionId</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td>Barq store session id from createStoreSession</td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">storeToken</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td>Barq store session token. SDK sends as X-Session-Token header</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <div class="callout">
@@ -560,6 +635,14 @@
                 <div>
                     <strong>Validation Rule:</strong> SDK accepts only <strong>development</strong> or
                     <strong>production</strong> in environment. Any other value will fail initialization.
+                </div>
+            </div>
+
+            <div class="callout" style="background: rgba(99, 102, 241, 0.1); border-left-color: var(--primary);">
+                <i data-lucide="info" size="20" style="color: var(--primary)"></i>
+                <div>
+                    <strong>Important:</strong> <code>sessionId</code> and <code>storeToken</code> come from Barq host
+                    integration (createStoreSession), not from ShoppingGate.
                 </div>
             </div>
         </section>
@@ -675,21 +758,23 @@ dependencies {
 
         <section id="implementation">
             <h2>6. Launching the SDK</h2>
+
             <p>Use the SDK native facade helper (<strong>SgTravelNative</strong>). Do not implement MethodChannel
                 wiring directly in partner app.</p>
             <div class="callout" style="background: rgba(16, 185, 129, 0.08); border-color: #10b981;">
                 <i data-lucide="info" size="20" style="color: #10b981"></i>
-                <p style="margin: 0;"><strong>Testing Credentials:</strong> <br/>
-                    Use the following details for your sandbox environment:<br/>
-                    <br/>
-                    <strong>phoneNumber:</strong> 554433223<br/> 
-                    <strong>countryCode:</strong> +966<br/>
-                    <strong>auth_code (API):</strong> Generate using the authentication API endpoint below<br/>
-                    <br/>
+                <p style="margin: 0;"><strong>Testing Credentials:</strong> <br />
+                    Use the following details for your sandbox environment:<br />
+                    <br />
+                    <strong>phoneNumber:</strong> 554433220<br />
+                    <strong>countryCode:</strong> +966<br />
+                    <strong>auth_code (API):</strong> Generate using the authentication API endpoint below<br />
+                    <br />
                     <span style="font-size: 0.9rem; color: var(--text-muted);">
-                        <strong>Note:</strong> You must call the auth code generation API before initializing the SDK, and generate a fresh auth code on each Booking/Order tap.
+                        <strong>Note:</strong> You must call the auth code generation API before initializing the SDK,
+                        and generate a fresh auth code on each Booking/Order tap.
                     </span>
-                    <strong>partnerUserId:</strong> 2<br/> 
+                    <strong>partnerUserId:</strong> 2<br />
                 </p>
             </div>
 
@@ -697,79 +782,114 @@ dependencies {
                 <i data-lucide="shield-check" size="20"></i>
                 <div>
                     <strong>Authentication Flow:</strong>
-                    <p>To enable user login via auth code (without OTP verification), follow the steps below:</p>
+                    <p>Before opening Booking/Order, host must do these steps in order:</p>
                     <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 0.95rem;">
-                        <li><strong>Step 1: Generate Auth Code</strong><br/>
-                            Call the ShoppingGate API from your backend to generate an auth code. This auth code is required for silent login without OTP verification and should be regenerated for each Booking/Order flow launch. Use the same <code>device_id</code> source used by SDK login (Android example: <code>Build.ID</code>, fallback to <code>ANDROID_ID</code>).
+                        <li><strong>Step 1: Barq login</strong><br />
+                            If user is not already logged in. (In real Barq app: user is already logged in, skip demo
+                            login).
+                        </li>
+                        <li style="margin-top: 12px;"><strong>Step 2: Create Barq store session</strong><br />
+                            Call <code>createStoreSession(merchantId)</code>. You get:
+                            <ul style="margin-top: 5px;">
+                                <li><code>sessionId</code> (used in checkout/pay APIs)</li>
+                                <li><code>storeToken</code> (SDK sends as X-Session-Token header)</li>
+                            </ul>
+                        </li>
+                        <li style="margin-top: 12px;"><strong>Step 3: Generate SDK token</strong><br />
+                            Call this API from host before each SDK open (replaces <code>generate-auth-code</code>):
                             <div class="code-wrap" style="margin-top: 12px;">
                                 <div class="code-header">
-                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">API Request</span></div>
-                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                    <div class="code-dots"><span></span><span></span><span></span><span
+                                            class="filename">API Request</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy"
+                                            size="14"></i> Copy</button>
                                 </div>
                                 <pre><code class="language-bash">curl -X 'POST' \
-  'https://microservices.shoppinggate.app/users/users/sdk/generate-auth-code' \
-  -H 'accept: */*' \
+  'https://microservices.shoppinggate.app/users/users/sdk/test/generate-token' \
   -H 'Content-Type: application/json' \
+  -H 'x-api-key: YOUR_SDK_TEST_API_KEY' \
   -d '{
-  "host_id": "barq",
-  "host_secret": "barq-*****",
-  "phone_number": "*********",
-  "phone_code": "****",
-  "device_id": "deviceId",
-  "partnerUserId": "unique_partner_user_id"
-}'</code></pre>
+    "user_id": "10000",
+    "phone_number": "554433220"
+  }'</code></pre>
                             </div>
                             <div class="code-wrap" style="margin-top: 12px;">
                                 <div class="code-header">
-                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">API Response</span></div>
-                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                    <div class="code-dots"><span></span><span></span><span></span><span
+                                            class="filename">API Response</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy"
+                                            size="14"></i> Copy</button>
                                 </div>
                                 <pre><code class="language-json">{
   "status": true,
-  "message": "Auth code generated successfully",
+  "message": "Token generated successfully",
   "data": {
-    "auth_code": "******************",
-    "expires_in": 300
+    "token": "JWT_TOKEN_HERE"
   }
 }</code></pre>
                             </div>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
+                                <strong>Deprecated:</strong> <code>POST /users/users/sdk/generate-auth-code</code> and
+                                <code>auth_code</code> flow.
+                            </p>
                         </li>
-                        <li style="margin-top: 16px;"><strong>Step 2: Pass Auth Code to SDK</strong><br/>
-                            Once you receive the <code>auth_code</code> from the API response, pass it to the SDK during initialization using the <code>authCode</code> field. The SDK will perform a silent login without requiring OTP verification. (<code>auth_code</code> is API key, <code>authCode</code> is SDK request key)
+                        <li style="margin-top: 16px;"><strong>Step 4: Pass token + session into SDK
+                                initialize</strong><br />
+                            Use <code>data.token</code> as <code>authCode</code> in <code>SgTravelRequest</code>. Also
+                            pass <code>sessionId</code> and <code>storeToken</code> from Step 2.
                             <div class="code-wrap" style="margin-top: 12px;">
                                 <div class="code-header">
-                                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin Example</span></div>
-                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
+                                    <div class="code-dots"><span></span><span></span><span></span><span
+                                            class="filename">Kotlin Example</span></div>
+                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy"
+                                            size="14"></i> Copy</button>
                                 </div>
                                 <pre><code class="language-kotlin">SgTravelNative.initialize(
     request = SgTravelNative.SgTravelRequest(
-        phoneNumber = "*********",
-        countryCode = "****",
+        phoneNumber = "554433220",
+        countryCode = "+966",
         environment = "development",
         language = "en",
-        authCode = "******************", // Fresh code from API response
-        partnerUserId = "unique_partner_user_id" // Unique identifier for the partner user
+        authCode = jwtFromGenerateToken, // JWT from Step 3
+        partnerUserId = "2",
+        sessionId = session.sessionId, // From Step 2
+        storeToken = session.storeToken // From Step 2
     )
 )</code></pre>
                             </div>
-                            <div class="callout" style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 12px; padding: 12px;">
-                                <i data-lucide="info" size="16" style="color: #f59e0b"></i>
-                                <div style="font-size: 0.9rem;">
-                                    <strong>Note:</strong> The auth code expires in 300 seconds (5 minutes). Always fetch a new auth code before each openBooking/openOrder action.
-                                </div>
-                            </div>
+                        </li>
+                        <li style="margin-top: 16px;"><strong>Step 5: SDK login (automatic)</strong><br />
+                            After initialize, the Flutter SDK automatically calls:
+                            <pre
+                                style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; font-size: 0.85rem;">POST /users/sdk/v2/login
+Header: source: barq
+Body: { "token": "&lt;JWT from generate-token&gt;" }</pre>
                         </li>
                     </ul>
+                    <div class="callout"
+                        style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 12px; padding: 12px;">
+                        <i data-lucide="info" size="16" style="color: #f59e0b"></i>
+                        <div style="font-size: 0.9rem;">
+                            <strong>Note:</strong> Regenerate token on every Booking/Order tap. Regenerate session if
+                            pay fails with expired session.
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <h3>A. Google Maps API Key <span class="badge">Required</span></h3>
-            <p>The SDK uses Google Maps to display location-based screens. <strong>Maps will not load without a valid API key.</strong> Add the following <code>&lt;meta-data&gt;</code> entry inside the <code>&lt;application&gt;</code> tag of your <code>android/app/src/main/AndroidManifest.xml</code>.</p>
+            <p>The SDK uses Google Maps to display location-based screens. <strong>Maps will not load without a valid
+                    API key.</strong> Add the following <code>&lt;meta-data&gt;</code> entry inside the
+                <code>&lt;application&gt;</code> tag of your <code>android/app/src/main/AndroidManifest.xml</code>.
+            </p>
 
             <div class="callout" style="background: rgba(239, 68, 68, 0.08); border-color: #ef4444;">
                 <i data-lucide="map-pin" size="20" style="color: #ef4444"></i>
                 <div>
-                    <strong>This step is not optional.</strong> If the Maps API key is missing or invalid, all map screens inside the SDK will fail to render. Ensure the key is enabled for the <strong>Maps SDK for Android</strong> in your Google Cloud Console and is restricted to your app's package name and SHA-1 fingerprint.
+                    <strong>This step is not optional.</strong> If the Maps API key is missing or invalid, all map
+                    screens inside the SDK will fail to render. Ensure the key is enabled for the <strong>Maps SDK for
+                        Android</strong> in your Google Cloud Console and is restricted to your app's package name and
+                    SHA-1 fingerprint.
                 </div>
             </div>
 
@@ -799,24 +919,33 @@ dependencies {
             </div>
 
             <h3>B. Theme Configuration <span class="badge">Optional</span></h3>
-            <p>You can customize the SDK's appearance by setting a theme <strong>before</strong> calling <code>initialize</code>. Use the <code>setTheme(config)</code> method with a <code>ThemeConfig</code> data class to pass your brand colors directly from native code.</p>
+            <p>You can customize the SDK's appearance by setting a theme <strong>before</strong> calling
+                <code>initialize</code>. Use the <code>setTheme(config)</code> method with a <code>ThemeConfig</code>
+                data class to pass your brand colors directly from native code.
+            </p>
 
             <div class="file-tree">
-                <span style="color: var(--primary)">●</span> <strong>primaryColor</strong> &nbsp;— Primary brand color used for buttons, highlights, and interactive elements. Hex format e.g. <code>"#FF6B35"</code><br>
-                <span style="color: var(--primary)">●</span> <strong>scaffoldBackground</strong> &nbsp;— Background color of the main scaffold/screen. Hex format e.g. <code>"#F5F5F5"</code><br>
-                <span style="color: var(--primary)">●</span> <strong>secondaryColor</strong> &nbsp;— Secondary color used for accents and secondary UI elements. Hex format e.g. <code>"#1D1C1C33"</code>
+                <span style="color: var(--primary)">●</span> <strong>primaryColor</strong> &nbsp;— Primary brand color
+                used for buttons, highlights, and interactive elements. Hex format e.g. <code>"#FF6B35"</code><br>
+                <span style="color: var(--primary)">●</span> <strong>scaffoldBackground</strong> &nbsp;— Background
+                color of the main scaffold/screen. Hex format e.g. <code>"#F5F5F5"</code><br>
+                <span style="color: var(--primary)">●</span> <strong>secondaryColor</strong> &nbsp;— Secondary color
+                used for accents and secondary UI elements. Hex format e.g. <code>"#1D1C1C33"</code>
             </div>
 
             <div class="callout" style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 2rem;">
                 <i data-lucide="alert-circle" size="20"></i>
                 <div>
-                    <strong>Important:</strong> <code>setTheme</code> must be called <strong>before</strong> <code>initialize</code>. If not called, the SDK will use its default theme. All color values must be in hex string format (e.g. <code>"#RRGGBB"</code> or <code>"#RRGGBBAA"</code>).
+                    <strong>Important:</strong> <code>setTheme</code> must be called <strong>before</strong>
+                    <code>initialize</code>. If not called, the SDK will use its default theme. All color values must be
+                    in hex string format (e.g. <code>"#RRGGBB"</code> or <code>"#RRGGBBAA"</code>).
                 </div>
             </div>
 
             <div class="code-wrap">
                 <div class="code-header">
-                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin Example</span></div>
+                    <div class="code-dots"><span></span><span></span><span></span><span class="filename">Kotlin
+                            Example</span></div>
                     <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
                 <pre><code class="language-kotlin">// Step 1: Set theme before initializing (optional)
@@ -1031,9 +1160,6 @@ object SgTravelNative {
             KEY_PARTNER_USER_ID to request.partnerUserId,
         )
     }
-
-    // ... Keep remaining helper methods same as project source (attachChannel,
-    // ensureEngineStarted, handleMethodCall, parsePaymentPayload, destroy, etc.)
 }</code></pre>
             </div>
 
@@ -1300,6 +1426,86 @@ class PaymentActivity : AppCompatActivity() {
     }
 }</code></pre>
             </div>
+
+            <div id="session-flow">
+                <h3>6.1 Barq Session Flow (Demo vs Production)</h3>
+
+                <h4>Production (Real Barq App):</h4>
+                <ul style="margin-bottom: 2rem;">
+                    <li>User already logged into Barq</li>
+                    <li><code>createStoreSession(merchantId)</code> &rarr; <code>sessionId</code> +
+                        <code>storeToken</code></li>
+                    <li><code>generate-token</code> &rarr; <code>JWT</code></li>
+                    <li><code>SgTravelNative.initialize(..., sessionId, storeToken, authCode=JWT)</code></li>
+                    <li><code>openBooking()</code> or <code>openOrder()</code></li>
+                </ul>
+
+                <h4>Demo App Only (SGTravelSDKDemo):</h4>
+                <p>Because the demo is not a real Barq app, you must perform a Barq login first:</p>
+
+                <div class="param-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Step</th>
+                                <th>Field</th>
+                                <th>Demo Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Phone</td>
+                                <td class="code-text">+966599491111</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>National ID</td>
+                                <td class="code-text">1029838719</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Date of birth</td>
+                                <td class="code-text">01/01/2000</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>OTP</td>
+                                <td class="code-text">111111</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Passcode</td>
+                                <td class="code-text">258025</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>After login &rarr; createStoreSession &rarr; generate-token &rarr; initialize SDK.</p>
+                <div class="callout" style="background: rgba(16, 185, 129, 0.1); border-left-color: #10b981;">
+                    <i data-lucide="shield-check" size="20" style="color: #10b981"></i>
+                    <div>
+                        <strong>Payment OTP inside SDK demo:</strong> 111111
+                    </div>
+                </div>
+
+                <h4>Demo Merchant Credentials:</h4>
+                <div class="file-tree" style="margin-bottom: 2rem;">
+                    <strong>merchantId:</strong> shoppingate-merchant<br>
+                    <strong>client_id:</strong> 7RRL4N2XA4LBTA8S2VG2XLYR97RMME262WIJPGLT0R2H01TEMHM0M3MGIJUHMSJN<br>
+                    <strong>raw_api_key:</strong> WUOMU0A0OX00UOBY8GL7AQJCF5CRE1OM9O7DTWLT7HFOOVMEZWC14L4K0TQ4D9FT
+                </div>
+
+                <div class="callout">
+                    <i data-lucide="clock" size="20"></i>
+                    <div>
+                        <strong>Session Expiry:</strong> <code>sessionId</code>/<code>storeToken</code> expire in a few
+                        minutes. If invalid/expired, recreate the store session and re-initialize the SDK.
+                    </div>
+                </div>
+            </div>
+
         </section>
 
         <section id="troubleshooting">
