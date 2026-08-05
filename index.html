@@ -151,7 +151,6 @@
         #host-config,
         #manifest,
         #implementation,
-        #session-flow,
         #troubleshooting,
         #downloads {
             scroll-margin-top: 50px;
@@ -498,8 +497,7 @@
 
         <div class="nav-label">Usage</div>
         <ul>
-            <li><a href="#implementation">6. Implementation</a></li>
-            <li><a href="#session-flow">6.1 Barq Session Flow</a></li>
+            <li><a href="#implementation">6. Host Integration Flow</a></li>
             <li><a href="#troubleshooting">7. Troubleshooting</a></li>
         </ul>
     </aside>
@@ -515,7 +513,7 @@
         <header>
             <h1>ShoppingGate Travel SDK For Android Native</h1>
             <h3>Android Native Integration Guide (AAR + Native Facade).</h3>
-            <p>Complete technical guide for embedding the ShoppingGate Travel SDK into native Android apps.</p>
+            <p>Host-app integration guide for embedding the ShoppingGate Travel SDK. Authentication is token-based — the host passes a JWT; no phone login inside the SDK.</p>
         </header>
 
         <section id="downloads">
@@ -535,20 +533,6 @@
                     </a>
                 </div>
 
-                <div class="download-card">
-                    <div>
-                        <div style="margin-bottom: 1rem;"><i data-lucide="code-2" style="color: var(--primary)"></i>
-                        </div>
-                        <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">Reference
-                            Project</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);">Android Studio starter project with
-                            implementation.</p>
-                    </div>
-                    <a href="https://drive.google.com/file/d/1Ri-TBNikOYPzagL0o_3YsLsDbvQR4QnF/view" target="_blank"
-                        class="download-btn secondary">
-                        <i data-lucide="external-link" size="18"></i> View Samples
-                    </a>
-                </div>
             </div>
         </section>
 
@@ -573,8 +557,8 @@
         </section>
 
         <section id="credentials">
-            <h2>2. API & Required Parameters</h2>
-            <p>To initialize the SDK, you must provide the following required payload values:</p>
+            <h2>2. Required Parameters</h2>
+            <p>The host app passes these values to <code>SgTravelNative.initialize</code>. All auth comes from the host — the SDK does not collect phone numbers or run a login UI.</p>
 
             <div class="param-table-wrapper">
                 <table>
@@ -587,44 +571,34 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="code-text">phoneNumber</td>
+                            <td class="code-text">authToken</td>
                             <td style="color: #10b981; font-weight: 600;">Yes</td>
-                            <td>User mobile number (without +)</td>
-                        </tr>
-                        <tr>
-                            <td class="code-text">countryCode</td>
-                            <td style="color: #10b981; font-weight: 600;">Yes</td>
-                            <td>Example: +966, +91</td>
-                        </tr>
-                        <tr>
-                            <td class="code-text">environment</td>
-                            <td style="color: #10b981; font-weight: 600;">Yes</td>
-                            <td>development or production</td>
-                        </tr>
-                        <tr>
-                            <td class="code-text">language</td>
-                            <td style="color: #10b981; font-weight: 600;">Yes</td>
-                            <td>en or ar</td>
-                        </tr>
-                        <tr>
-                            <td class="code-text">authCode</td>
-                            <td style="color: #10b981; font-weight: 600;">Yes</td>
-                            <td>JWT from generate-token API (see Section 6). Still passed as authCode field name.</td>
+                            <td>JWT for the logged-in user, issued by the host app's auth/backend. Passed to the native bridge as <code>authCode</code>.</td>
                         </tr>
                         <tr>
                             <td class="code-text">partnerUserId</td>
                             <td style="color: #10b981; font-weight: 600;">Yes</td>
-                            <td>Unique partner user identifier</td>
+                            <td>Host's unique user identifier</td>
                         </tr>
                         <tr>
                             <td class="code-text">sessionId</td>
                             <td style="color: #10b981; font-weight: 600;">Yes</td>
-                            <td>Barq store session id from createStoreSession</td>
+                            <td>Store session id from host <code>createStoreSession(merchantId)</code></td>
                         </tr>
                         <tr>
                             <td class="code-text">storeToken</td>
                             <td style="color: #10b981; font-weight: 600;">Yes</td>
-                            <td>Barq store session token. SDK sends as X-Session-Token header</td>
+                            <td>Store session token from <code>createStoreSession</code>. SDK sends as <code>X-Session-Token</code> header.</td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">environment</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td><code>development</code> or <code>production</code></td>
+                        </tr>
+                        <tr>
+                            <td class="code-text">language</td>
+                            <td style="color: #10b981; font-weight: 600;">Yes</td>
+                            <td><code>en</code> or <code>ar</code></td>
                         </tr>
                     </tbody>
                 </table>
@@ -641,8 +615,8 @@
             <div class="callout" style="background: rgba(99, 102, 241, 0.1); border-left-color: var(--primary);">
                 <i data-lucide="info" size="20" style="color: var(--primary)"></i>
                 <div>
-                    <strong>Important:</strong> <code>sessionId</code> and <code>storeToken</code> come from Barq host
-                    integration (createStoreSession), not from ShoppingGate.
+                    <strong>Important:</strong> <code>sessionId</code> and <code>storeToken</code> come from the host app's
+                    <code>createStoreSession</code> integration, not from ShoppingGate.
                 </div>
             </div>
         </section>
@@ -757,86 +731,32 @@ dependencies {
         </section>
 
         <section id="implementation">
-            <h2>6. Launching the SDK</h2>
+            <h2>6. Host Integration Flow</h2>
 
-            <p>Use the SDK native facade helper (<strong>SgTravelNative</strong>). Do not implement MethodChannel
-                wiring directly in partner app.</p>
-            <div class="callout" style="background: rgba(16, 185, 129, 0.08); border-color: #10b981;">
-                <i data-lucide="info" size="20" style="color: #10b981"></i>
-                <p style="margin: 0;"><strong>Testing Credentials:</strong> <br />
-                    Use the following details for your sandbox environment:<br />
-                    <br />
-                    <strong>phoneNumber:</strong> 554433220<br />
-                    <strong>countryCode:</strong> +966<br />
-                    <strong>auth_code (API):</strong> Generate using the authentication API endpoint below<br />
-                    <br />
-                    <span style="font-size: 0.9rem; color: var(--text-muted);">
-                        <strong>Note:</strong> You must call the auth code generation API before initializing the SDK,
-                        and generate a fresh auth code on each Booking/Order tap.
-                    </span>
-                    <strong>partnerUserId:</strong> 2<br />
-                </p>
-            </div>
+            <p>Use the SDK native facade (<strong>SgTravelNative</strong>). Do not wire MethodChannel directly in the host app.</p>
 
             <div class="callout">
                 <i data-lucide="shield-check" size="20"></i>
                 <div>
-                    <strong>Authentication Flow:</strong>
-                    <p>Before opening Booking/Order, host must do these steps in order:</p>
+                    <strong>Before opening Booking or Order</strong>
+                    <p>The host app must prepare session + token, then initialize the SDK:</p>
                     <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 0.95rem;">
-                        <li><strong>Step 1: Barq login</strong><br />
-                            If user is not already logged in. (In real Barq app: user is already logged in, skip demo
-                            login).
+                        <li style="margin-top: 8px;"><strong>Step 1: User already logged in on host app</strong><br />
+                            The host owns authentication. The SDK does not show phone/OTP login.
                         </li>
-                        <li style="margin-top: 12px;"><strong>Step 2: Create Barq store session</strong><br />
-                            Call <code>createStoreSession(merchantId)</code>. You get:
+                        <li style="margin-top: 12px;"><strong>Step 2: Create store session</strong><br />
+                            Call <code>createStoreSession(merchantId)</code> on the host side. You receive:
                             <ul style="margin-top: 5px;">
-                                <li><code>sessionId</code> (used in checkout/pay APIs)</li>
-                                <li><code>storeToken</code> (SDK sends as X-Session-Token header)</li>
+                                <li><code>sessionId</code> — used in checkout/payment APIs</li>
+                                <li><code>storeToken</code> — SDK sends as <code>X-Session-Token</code> header</li>
                             </ul>
                         </li>
-                        <li style="margin-top: 12px;"><strong>Step 3: Generate SDK token</strong><br />
-                            Call this API from host before each SDK open (replaces <code>generate-auth-code</code>):
-                            <div class="code-wrap" style="margin-top: 12px;">
-                                <div class="code-header">
-                                    <div class="code-dots"><span></span><span></span><span></span><span
-                                            class="filename">API Request</span></div>
-                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy"
-                                            size="14"></i> Copy</button>
-                                </div>
-                                <pre><code class="language-bash">curl -X 'POST' \
-  'https://microservices.shoppinggate.app/users/users/sdk/test/generate-token' \
-  -H 'Content-Type: application/json' \
-  -H 'x-api-key: YOUR_SDK_TEST_API_KEY' \
-  -d '{
-    "user_id": "10000",
-    "phone_number": "554433220"
-  }'</code></pre>
-                            </div>
-                            <div class="code-wrap" style="margin-top: 12px;">
-                                <div class="code-header">
-                                    <div class="code-dots"><span></span><span></span><span></span><span
-                                            class="filename">API Response</span></div>
-                                    <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy"
-                                            size="14"></i> Copy</button>
-                                </div>
-                                <pre><code class="language-json">{
-  "status": true,
-  "message": "Token generated successfully",
-  "data": {
-    "token": "JWT_TOKEN_HERE"
-  }
-}</code></pre>
-                            </div>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
-                                <strong>Deprecated:</strong> <code>POST /users/users/sdk/generate-auth-code</code> and
-                                <code>auth_code</code> flow.
-                            </p>
+                        <li style="margin-top: 12px;"><strong>Step 3: Obtain auth token from host app</strong><br />
+                            The host backend/auth layer issues a JWT (<code>authToken</code>) for the current logged-in user.
+                            Regenerate a fresh token on each Booking/Order tap.
                         </li>
-                        <li style="margin-top: 16px;"><strong>Step 4: Pass token + session into SDK
-                                initialize</strong><br />
-                            Use <code>data.token</code> as <code>authCode</code> in <code>SgTravelRequest</code>. Also
-                            pass <code>sessionId</code> and <code>storeToken</code> from Step 2.
+                        <li style="margin-top: 16px;"><strong>Step 4: Initialize SDK with token + session</strong><br />
+                            Pass the host JWT, partner user id, and store session into <code>SgTravelNative.initialize</code>.
                             <div class="code-wrap" style="margin-top: 12px;">
                                 <div class="code-header">
                                     <div class="code-dots"><span></span><span></span><span></span><span
@@ -846,32 +766,38 @@ dependencies {
                                 </div>
                                 <pre><code class="language-kotlin">SgTravelNative.initialize(
     request = SgTravelNative.SgTravelRequest(
-        phoneNumber = "554433220",
-        countryCode = "+966",
         environment = "development",
         language = "en",
-        authCode = jwtFromGenerateToken, // JWT from Step 3
-        partnerUserId = "2",
-        sessionId = session.sessionId, // From Step 2
-        storeToken = session.storeToken // From Step 2
+        authCode = hostAuthToken,           // JWT from host app (Step 3)
+        partnerUserId = hostUserId,
+        sessionId = storeSession.sessionId, // From Step 2
+        storeToken = storeSession.storeToken
     )
 )</code></pre>
                             </div>
                         </li>
-                        <li style="margin-top: 16px;"><strong>Step 5: SDK login (automatic)</strong><br />
-                            After initialize, the Flutter SDK automatically calls:
-                            <pre
-                                style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; font-size: 0.85rem;">POST /users/sdk/v2/login
-Header: source: barq
-Body: { "token": "&lt;JWT from generate-token&gt;" }</pre>
+                        <li style="margin-top: 16px;"><strong>Step 5: SDK silent login (automatic)</strong><br />
+                            After <code>initialize</code>, the Flutter SDK automatically:
+                            <pre style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; font-size: 0.85rem;">getInitData
+POST /users/sdk/v2/login
+Body: { "token": "&lt;host JWT&gt;" }
+getServiceData → open travel UI</pre>
+                        </li>
+                        <li style="margin-top: 16px;"><strong>Step 6: Open a flow</strong><br />
+                            After initialize succeeds:
+                            <pre style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; font-size: 0.85rem;">SgTravelNative.openBooking(context)  // travel search / booking
+SgTravelNative.openOrder(context)    // bookings &amp; orders</pre>
+                        </li>
+                        <li style="margin-top: 16px;"><strong>Step 7: Payment (host handles)</strong><br />
+                            SDK calls <code>continueToPayment</code> on the host → host shows native payment UI → host calls <code>SgTravelNative.invokePaymentInitiation(transactionId)</code>.
                         </li>
                     </ul>
                     <div class="callout"
                         style="background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; margin-top: 12px; padding: 12px;">
                         <i data-lucide="info" size="16" style="color: #f59e0b"></i>
                         <div style="font-size: 0.9rem;">
-                            <strong>Note:</strong> Regenerate token on every Booking/Order tap. Regenerate session if
-                            pay fails with expired session.
+                            <strong>Token &amp; session:</strong> Use a fresh <code>authToken</code> on every Booking/Order open.
+                            Recreate <code>sessionId</code>/<code>storeToken</code> if payment fails with an expired session.
                         </div>
                     </div>
                 </div>
@@ -968,7 +894,7 @@ SgTravelNative.initialize(request = SgTravelNative.SgTravelRequest(...))</code><
                             class="filename">SgTravelNative.kt</span></div>
                     <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
-                <pre><code class="language-kotlin">package com.sg.travelsdkdemo
+                <pre><code class="language-kotlin">package com.yourapp.travel
 
 import android.app.Activity
 import android.content.Context
@@ -999,12 +925,12 @@ object SgTravelNative {
     const val METHOD_CONTINUE_TO_PAYMENT: String = "continueToPayment"
     private const val METHOD_INVOKE_PAYMENT: String = "invokePaymentInitiation"
 
-    private const val KEY_PHONE = "phoneNumber"
-    private const val KEY_COUNTRY = "countryCode"
     private const val KEY_ENV = "environment"
     private const val KEY_LANG = "language"
     private const val KEY_AUTH_CODE = "authCode"
     private const val KEY_PARTNER_USER_ID = "partnerUserId"
+    private const val KEY_SESSION_ID = "sessionId"
+    private const val KEY_STORE_TOKEN = "storeToken"
 
     private const val KEY_PRIMARY_COLOR = "primaryColor"
     private const val KEY_SCAFFOLD_BACKGROUND = "scaffoldBackground"
@@ -1028,12 +954,12 @@ object SgTravelNative {
     )
 
     data class SgTravelRequest(
-        val phoneNumber: String,
-        val countryCode: String,
         val environment: String,
         val language: String,
         val authCode: String,
         val partnerUserId: String,
+        val sessionId: String,
+        val storeToken: String,
     )
 
     data class ThemeConfig(
@@ -1113,51 +1039,14 @@ object SgTravelNative {
         if (shouldReset) resetEnginePreservingInitialization()
     }
 
-    private fun dispatchOrQueue(
-        method: String,
-        arguments: Any?,
-        callback: MethodChannel.Result? = null,
-    ) {
-        val activeChannel = synchronized(lock) {
-            if (methodChannel == null || !isFlutterReady) {
-                pendingCalls.add(ChannelCall(method, arguments, callback))
-                null
-            } else {
-                methodChannel
-            }
-        }
-
-        if (activeChannel != null) {
-            invokeMethodOnMainThread(activeChannel, method, arguments, callback)
-        }
-    }
-
-    private fun invokeMethodOnMainThread(
-        channel: MethodChannel,
-        method: String,
-        arguments: Any?,
-        callback: MethodChannel.Result? = null,
-    ) {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            if (callback != null) channel.invokeMethod(method, arguments, callback)
-            else channel.invokeMethod(method, arguments)
-            return
-        }
-
-        mainHandler.post {
-            if (callback != null) channel.invokeMethod(method, arguments, callback)
-            else channel.invokeMethod(method, arguments)
-        }
-    }
-
     private fun normalizeRequest(request: SgTravelRequest): MutableMap&lt;String, Any&gt; {
         return mutableMapOf(
-            KEY_PHONE to request.phoneNumber,
-            KEY_COUNTRY to request.countryCode,
             KEY_ENV to request.environment,
             KEY_LANG to request.language,
             KEY_AUTH_CODE to request.authCode,
             KEY_PARTNER_USER_ID to request.partnerUserId,
+            KEY_SESSION_ID to request.sessionId,
+            KEY_STORE_TOKEN to request.storeToken,
         )
     }
 }</code></pre>
@@ -1170,7 +1059,7 @@ object SgTravelNative {
                             class="filename">SgFlutterActivity.kt</span></div>
                     <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
-                <pre><code class="language-kotlin">package com.sg.travelsdkdemo
+                <pre><code class="language-kotlin">package com.yourapp.travel
 
 import io.flutter.embedding.android.FlutterActivity
 
@@ -1217,22 +1106,22 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById&lt;Button&gt;(R.id.openBooking).setOnClickListener {
-            loginAndOpenFlow(SdkFlowType.BOOKING)
+            openTravelFlow(SdkFlowType.BOOKING)
         }
 
         findViewById&lt;Button&gt;(R.id.openOrder).setOnClickListener {
-            loginAndOpenFlow(SdkFlowType.ORDER)
+            openTravelFlow(SdkFlowType.ORDER)
         }
     }
 
-    private fun loginAndOpenFlow(flowType: SdkFlowType) {
-        Thread {
-            val authCode = fetchAuthCodeFromApi() // call API every tap
-            runOnUiThread { initializeSdkAndOpen(authCode, flowType) }
-        }.start()
-    }
+    private fun openTravelFlow(flowType: SdkFlowType) {
+        // 1. Host already has logged-in user
+        // 2. createStoreSession(merchantId) → sessionId + storeToken
+        // 3. Host auth/backend → fresh JWT for this user
+        val hostAuthToken = yourAuthService.getTravelToken()
+        val hostUserId = yourAuthService.getPartnerUserId()
+        val storeSession = yourStoreSessionService.createOrRefresh()
 
-    private fun initializeSdkAndOpen(authCode: String, flowType: SdkFlowType) {
         SgTravelNative.warmUpEngine(this)
 
         SgTravelNative.setTheme(
@@ -1245,18 +1134,18 @@ class MainActivity : AppCompatActivity() {
 
         SgTravelNative.initialize(
             request = SgTravelNative.SgTravelRequest(
-                phoneNumber = "554433223",
-                countryCode = "+966",
-                environment = "development",
-                language = "en",
-                authCode = authCode,
-                partnerUserId = "2"
+                environment = BuildConfig.SG_ENVIRONMENT,
+                language = yourLocaleService.currentLanguage(),
+                authCode = hostAuthToken,
+                partnerUserId = hostUserId,
+                sessionId = storeSession.sessionId,
+                storeToken = storeSession.storeToken,
             ),
             callback = object : MethodChannel.Result {
                 override fun success(result: Any?) {
                     when (flowType) {
-                        SdkFlowType.BOOKING -> SgTravelNative.openBooking(context = this@MainActivity)
-                        SdkFlowType.ORDER -> SgTravelNative.openOrder(context = this@MainActivity)
+                        SdkFlowType.BOOKING -> SgTravelNative.openBooking(this@MainActivity)
+                        SdkFlowType.ORDER -> SgTravelNative.openOrder(this@MainActivity)
                     }
                 }
 
@@ -1347,7 +1236,7 @@ class MainActivity : AppCompatActivity() {
                             class="filename">PaymentActivity.kt</span></div>
                     <button class="copy-btn" onclick="copyCode(this)"><i data-lucide="copy" size="14"></i> Copy</button>
                 </div>
-                <pre><code class="language-kotlin">package com.sg.travelsdkdemo
+                <pre><code class="language-kotlin">package com.yourapp.travel
 
 import android.content.Context
 import android.content.Intent
@@ -1427,85 +1316,6 @@ class PaymentActivity : AppCompatActivity() {
 }</code></pre>
             </div>
 
-            <div id="session-flow">
-                <h3>6.1 Barq Session Flow (Demo vs Production)</h3>
-
-                <h4>Production (Real Barq App):</h4>
-                <ul style="margin-bottom: 2rem;">
-                    <li>User already logged into Barq</li>
-                    <li><code>createStoreSession(merchantId)</code> &rarr; <code>sessionId</code> +
-                        <code>storeToken</code></li>
-                    <li><code>generate-token</code> &rarr; <code>JWT</code></li>
-                    <li><code>SgTravelNative.initialize(..., sessionId, storeToken, authCode=JWT)</code></li>
-                    <li><code>openBooking()</code> or <code>openOrder()</code></li>
-                </ul>
-
-                <h4>Demo App Only (SGTravelSDKDemo):</h4>
-                <p>Because the demo is not a real Barq app, you must perform a Barq login first:</p>
-
-                <div class="param-table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Step</th>
-                                <th>Field</th>
-                                <th>Demo Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Phone</td>
-                                <td class="code-text">+966599491111</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>National ID</td>
-                                <td class="code-text">1029838719</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>Date of birth</td>
-                                <td class="code-text">01/01/2000</td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>OTP</td>
-                                <td class="code-text">111111</td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>Passcode</td>
-                                <td class="code-text">258025</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <p>After login &rarr; createStoreSession &rarr; generate-token &rarr; initialize SDK.</p>
-                <div class="callout" style="background: rgba(16, 185, 129, 0.1); border-left-color: #10b981;">
-                    <i data-lucide="shield-check" size="20" style="color: #10b981"></i>
-                    <div>
-                        <strong>Payment OTP inside SDK demo:</strong> 111111
-                    </div>
-                </div>
-
-                <h4>Demo Merchant Credentials:</h4>
-                <div class="file-tree" style="margin-bottom: 2rem;">
-                    <strong>merchantId:</strong> shoppingate-merchant<br>
-                    <strong>client_id:</strong> 7RRL4N2XA4LBTA8S2VG2XLYR97RMME262WIJPGLT0R2H01TEMHM0M3MGIJUHMSJN<br>
-                    <strong>raw_api_key:</strong> WUOMU0A0OX00UOBY8GL7AQJCF5CRE1OM9O7DTWLT7HFOOVMEZWC14L4K0TQ4D9FT
-                </div>
-
-                <div class="callout">
-                    <i data-lucide="clock" size="20"></i>
-                    <div>
-                        <strong>Session Expiry:</strong> <code>sessionId</code>/<code>storeToken</code> expire in a few
-                        minutes. If invalid/expired, recreate the store session and re-initialize the SDK.
-                    </div>
-                </div>
-            </div>
-
         </section>
 
         <section id="troubleshooting">
@@ -1513,12 +1323,12 @@ class PaymentActivity : AppCompatActivity() {
             <div class="callout" style="background: rgba(37, 99, 235, 0.05); border-color: var(--primary);">
                 <i data-lucide="help-circle" size="20" style="color: var(--primary)"></i>
                 <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
-                    <li><strong>Initialize First:</strong> Call initialize before openBooking/openOrder.</li>
-                    <li><strong>Environment Validation:</strong> Use only development or production.</li>
-                    <li><strong>No Direct MethodChannel:</strong> Keep partner app on SgTravelNative facade API only.
-                    </li>
-                    <li><strong>Maps Issues:</strong> Ensure API key is enabled for Maps SDK and restricted with
-                        package/SHA.</li>
+                    <li><strong>Initialize First:</strong> Call <code>initialize</code> before <code>openBooking</code>/<code>openOrder</code>.</li>
+                    <li><strong>Host Auth Token:</strong> Pass a fresh JWT from the host app on every open — the SDK does not generate tokens.</li>
+                    <li><strong>Session Expiry:</strong> Recreate <code>sessionId</code>/<code>storeToken</code> if payment fails with an expired session.</li>
+                    <li><strong>Environment Validation:</strong> Use only <code>development</code> or <code>production</code>.</li>
+                    <li><strong>No Direct MethodChannel:</strong> Use the <code>SgTravelNative</code> facade only.</li>
+                    <li><strong>Maps Issues:</strong> Ensure API key is enabled for Maps SDK and restricted with package/SHA.</li>
                 </ul>
             </div>
         </section>
